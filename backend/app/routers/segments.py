@@ -12,8 +12,10 @@ from app.schemas.segment import (
     SegmentRead,
     SegmentUpdateAnalysis,
     SegmentUpdateTranslation,
+    TTSRequest,
 )
 from app.services.ffmpeg_service import FFmpegService
+from app.services.openai_service import OpenAIService
 from app.services.project_service import ProjectService
 from app.services.segment_service import SegmentService
 
@@ -33,7 +35,8 @@ def get_segment_service(
 ) -> SegmentService:
     repo = SegmentRepository(session)
     ffmpeg = FFmpegService(settings)
-    return SegmentService(repo, ffmpeg, settings)
+    openai = OpenAIService(settings)
+    return SegmentService(repo, ffmpeg, settings, openai)
 
 
 @router.post(
@@ -126,4 +129,27 @@ async def update_analysis(
         segment_id,
         data.model_dump(exclude_none=True),
     )
+    return SegmentRead.model_validate(segment)
+
+
+@router.post("/segments/{segment_id}/analyze", response_model=SegmentRead)
+async def analyze_segment(
+    segment_id: str,
+    segment_service: Annotated[SegmentService, Depends(get_segment_service)],
+) -> SegmentRead:
+    """Analyze segment audio using OpenAI gpt-4o-audio-preview."""
+    segment = await segment_service.get_by_id(segment_id)
+    segment = await segment_service.analyze_segment(segment)
+    return SegmentRead.model_validate(segment)
+
+
+@router.post("/segments/{segment_id}/generate-tts", response_model=SegmentRead)
+async def generate_tts(
+    segment_id: str,
+    data: TTSRequest,
+    segment_service: Annotated[SegmentService, Depends(get_segment_service)],
+) -> SegmentRead:
+    """Generate TTS audio for segment using OpenAI tts-1-hd."""
+    segment = await segment_service.get_by_id(segment_id)
+    segment = await segment_service.generate_tts(segment, voice=data.voice)
     return SegmentRead.model_validate(segment)

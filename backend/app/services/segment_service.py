@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from app.config import Settings
 from app.models import Segment
 from app.models.segment import SegmentStatus
 from app.repositories.segment_repo import SegmentRepository
 from app.services.ffmpeg_service import FFmpegService
+from app.services.openai_service import OpenAIService
 from app.utils.exceptions import ProcessingError, SegmentNotFoundError
 
 if TYPE_CHECKING:
@@ -20,10 +21,12 @@ class SegmentService:
         repo: SegmentRepository,
         ffmpeg: FFmpegService,
         settings: Settings,
+        openai: Optional[OpenAIService] = None,
     ) -> None:
         self.repo = repo
         self.ffmpeg = ffmpeg
         self.settings = settings
+        self.openai = openai
 
     def _get_project_audio_path(self, project: Project) -> Path:
         """Get full audio path from project."""
@@ -120,3 +123,87 @@ class SegmentService:
             analysis_json=analysis_json,
             original_transcription=analysis_json.get("transcription"),
         )
+
+    def _get_output_dir(self, project_id: str) -> Path:
+        return self.settings.projects_dir / project_id / "output"
+
+    async def analyze_segment(self, segment: Segment) -> Segment:
+        """Analyze segment audio using OpenAI."""
+        if self.openai is None:
+            raise ProcessingError("OpenAI service not configured")
+
+        if not segment.audio_file:
+            raise ProcessingError("Segment has no audio file. Extract audio first.")
+
+        audio_path = self.settings.projects_dir / segment.audio_file
+
+        # Update status to analyzing
+        segment = await self.repo.update(segment, status=SegmentStatus.ANALYZING)
+
+        try:
+            analysis = await self.openai.analyze_audio(audio_path)
+
+            segment = await self.repo.update(
+                segment,
+                status=SegmentStatus.ANALYZED,
+                analysis_json=analysis,
+                original_transcription=analysis.get("transcription"),
+                translated_text=analysis.get("translated_text"),
+            )
+        except Exception as e:
+            segment = await self.repo.update(
+                segment,
+                status=SegmentStatus.ERROR,
+                error_message=str(e),
+            )
+            raise
+
+        return segment
+
+    async def generate_tts(
+        self,
+        segment: Segment,
+        voice: str = "alloy",
+    ) -> Segment:
+        """Generate TTS audio for segment."""
+        if self.openai is None:
+            raise ProcessingError("OpenAI service not configured")
+
+        if not segment.translated_text:
+            raise ProcessingError(
+                "Segment has no translated text. Analyze or add translation first."
+            )
+
+        output_dir = self._get_output_dir(segment.project_id)
+        filename = OpenAIService.format_tts_filename(segment.start_time)
+        output_path = output_dir / filename
+
+        # Update status to generating
+        segment = await self.repo.update(
+            segment,
+            status=SegmentStatus.GENERATING_TTS,
+            tts_voice=voice,
+        )
+
+        try:
+            await self.openai.generate_tts(
+                text=segment.translated_text,
+                voice=voice,
+                output_path=output_path,
+            )
+
+            relative_path = str(output_path.relative_to(self.settings.projects_dir))
+            segment = await self.repo.update(
+                segment,
+                status=SegmentStatus.COMPLETED,
+                tts_result_file=relative_path,
+            )
+        except Exception as e:
+            segment = await self.repo.update(
+                segment,
+                status=SegmentStatus.ERROR,
+                error_message=str(e),
+            )
+            raise
+
+        return segment

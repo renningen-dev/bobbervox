@@ -67,3 +67,15 @@ class SegmentUpdateAnalysis(BaseModel):
     tempo: Optional[str] = None
     emphasis: list[str] = []
     pause_before: list[str] = []
+
+
+class TTSRequest(BaseModel):
+    voice: str = "alloy"
+
+    @field_validator("voice")
+    @classmethod
+    def validate_voice(cls, v: str) -> str:
+        valid_voices = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
+        if v not in valid_voices:
+            raise ValueError(f"Invalid voice. Must be one of: {valid_voices}")
+        return v
