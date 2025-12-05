@@ -50,13 +50,16 @@ async def create_segment(
     project_service: Annotated[ProjectService, Depends(get_project_service)],
     segment_service: Annotated[SegmentService, Depends(get_segment_service)],
 ) -> SegmentRead:
-    """Create a new segment for a project."""
+    """Create a new segment for a project and automatically extract audio."""
     project = await project_service.get_by_id(project_id)
     segment = await segment_service.create(
         project=project,
         start_time=data.start_time,
         end_time=data.end_time,
     )
+    # Automatically extract audio if project has extracted audio
+    if project.extracted_audio:
+        segment = await segment_service.extract_audio(segment, project)
     return SegmentRead.model_validate(segment)
 
 

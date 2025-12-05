@@ -1,7 +1,6 @@
 import {
   ChevronDownIcon,
   ChevronUpIcon,
-  PlayIcon,
   SpeakerWaveIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
@@ -10,7 +9,6 @@ import { toast } from "sonner";
 import {
   useAnalyzeSegment,
   useDeleteSegment,
-  useExtractSegment,
   useGenerateTTS,
   useUpdateTranslation,
 } from "../../features/segments/api";
@@ -48,20 +46,10 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
   const [selectedVoice, setSelectedVoice] = useState<TTSVoice>("alloy");
   const [translationText, setTranslationText] = useState(segment.translated_text || "");
 
-  const extractSegment = useExtractSegment();
   const analyzeSegment = useAnalyzeSegment();
   const generateTTS = useGenerateTTS();
   const updateTranslation = useUpdateTranslation();
   const deleteSegment = useDeleteSegment();
-
-  const handleExtract = async () => {
-    try {
-      await extractSegment.mutateAsync(segment.id);
-      toast.success("Segment audio extracted");
-    } catch {
-      toast.error("Failed to extract segment audio");
-    }
-  };
 
   const handleAnalyze = async () => {
     try {
@@ -118,7 +106,6 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
     : null;
 
   const isProcessing =
-    extractSegment.isPending ||
     analyzeSegment.isPending ||
     generateTTS.isPending;
 
@@ -181,17 +168,6 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
             )}
 
             {/* Actions based on status */}
-            {segment.status === "created" && (
-              <button
-                onClick={handleExtract}
-                disabled={isProcessing}
-                className={cn(buttonStyles.base, buttonStyles.primary, "w-full")}
-              >
-                <PlayIcon className="w-4 h-4 mr-2" />
-                {extractSegment.isPending ? "Extracting..." : "Extract Audio"}
-              </button>
-            )}
-
             {segment.status === "extracted" && (
               <button
                 onClick={handleAnalyze}
