@@ -1,24 +1,41 @@
 # BobberVox Backend
 
-Video dubbing workflow API with AI-powered transcription and TTS.
+FastAPI backend for the BobberVox video dubbing application.
+
+## Features
+
+- Video upload and audio extraction using FFmpeg
+- AI-powered transcription and translation using OpenAI GPT-4o Audio
+- Text-to-speech generation with customizable voice parameters
+- Project and segment management
+- Firebase authentication
+
+## Requirements
+
+- Python 3.9+
+- FFmpeg
+- OpenAI API key
 
 ## Development
 
 ```bash
 # Create virtual environment
-python3.11 -m venv .venv
+python -m venv .venv
 source .venv/bin/activate
 
 # Install dependencies
 pip install -e ".[dev]"
 
-# Run development server
-uvicorn app.main:app --reload
+# Run migrations
+alembic upgrade head
 
-# Run tests
-pytest
+# Start server
+uvicorn app.main:app --reload
 ```
 
-## API Documentation
+## Environment Variables
 
-Once running, visit http://localhost:8000/docs for OpenAPI documentation.
+- `DATABASE_URL` - SQLite database URL
+- `OPENAI_API_KEY` - OpenAI API key
+- `PROJECTS_DIR` - Directory for project files
+- `FIREBASE_PROJECT_ID` - Firebase project ID

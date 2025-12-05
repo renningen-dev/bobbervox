@@ -1,15 +1,16 @@
 FROM python:3.11-slim
 
-# Install ffmpeg and libmagic
+# Install ffmpeg, libmagic, and zip
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     libmagic1 \
+    zip \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
 # Install Python dependencies
-COPY pyproject.toml .
+COPY pyproject.toml README.md ./
 RUN pip install --no-cache-dir .
 
 # Copy application code

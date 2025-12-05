@@ -8,8 +8,9 @@ services:
     environment:
       - DATABASE_URL=sqlite+aiosqlite:///./data/bobbervox.db
       - PROJECTS_DIR=/app/projects
-      - CORS_ORIGINS=["http://localhost","http://localhost:80"]
+      - CORS_ORIGINS=${CORS_ORIGINS:-["http://localhost","http://localhost:80"]}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - HOSTNAME=${HOSTNAME:-localhost}
     volumes:
       - backend_data:/app/data
       - projects_data:/app/projects
@@ -19,6 +20,13 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - VITE_FIREBASE_API_KEY=${VITE_FIREBASE_API_KEY}
+        - VITE_FIREBASE_AUTH_DOMAIN=${VITE_FIREBASE_AUTH_DOMAIN}
+        - VITE_FIREBASE_PROJECT_ID=${VITE_FIREBASE_PROJECT_ID}
+        - VITE_FIREBASE_STORAGE_BUCKET=${VITE_FIREBASE_STORAGE_BUCKET}
+        - VITE_FIREBASE_MESSAGING_SENDER_ID=${VITE_FIREBASE_MESSAGING_SENDER_ID}
+        - VITE_FIREBASE_APP_ID=${VITE_FIREBASE_APP_ID}
     ports:
       - "80:80"
     depends_on:
