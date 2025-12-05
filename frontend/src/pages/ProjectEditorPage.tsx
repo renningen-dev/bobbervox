@@ -4,6 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { VideoUploadDropzone } from "../components/editor/VideoUploadDropzone";
 import { SegmentList } from "../components/segments/SegmentList";
+import { Spinner } from "../components/ui/Spinner";
 import { WaveformPlayer } from "../components/waveform/WaveformPlayer";
 import { useExtractAudio, useProject } from "../features/projects/api";
 import { buttonStyles, cardStyles, cn } from "../lib/styles";
@@ -86,7 +87,14 @@ function AudioExtractionButton({ projectId }: { projectId: string }) {
       disabled={extractAudio.isPending}
       className={cn(buttonStyles.base, buttonStyles.primary)}
     >
-      {extractAudio.isPending ? "Extracting..." : "Extract Audio"}
+      {extractAudio.isPending ? (
+        <>
+          <Spinner size="sm" className="mr-2" />
+          Extracting...
+        </>
+      ) : (
+        "Extract Audio"
+      )}
     </button>
   );
 }

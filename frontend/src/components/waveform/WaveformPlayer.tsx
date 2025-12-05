@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useCreateSegment } from "../../features/segments/api";
 import { useWaveSurfer } from "../../hooks/useWaveSurfer";
@@ -18,11 +18,13 @@ export function WaveformPlayer({ projectId, audioUrl, segments = [] }: WaveformP
   // Use state for container to trigger re-render when ref is set
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
   const [zoomLevel, setZoomLevel] = useState(50);
+  const pendingRegionRef = useRef<Region | null>(null);
 
   const setCurrentTime = useEditorStore((s) => s.setCurrentTime);
   const setIsPlaying = useEditorStore((s) => s.setIsPlaying);
   const setPendingRegion = useEditorStore((s) => s.setPendingRegion);
   const setSelectedRegionId = useEditorStore((s) => s.setSelectedRegionId);
+  const pendingRegion = useEditorStore((s) => s.pendingRegion);
 
   const createSegment = useCreateSegment();
 
@@ -37,6 +39,11 @@ export function WaveformPlayer({ projectId, audioUrl, segments = [] }: WaveformP
   const handleRegionCreated = useCallback((region: Region) => {
     // Only track pending regions (new ones created by user)
     if (!region.id.startsWith("segment-")) {
+      // Remove any previous pending region
+      if (pendingRegionRef.current && pendingRegionRef.current.id !== region.id) {
+        pendingRegionRef.current.remove();
+      }
+      pendingRegionRef.current = region;
       setPendingRegion({
         id: region.id,
         start: region.start,
@@ -139,7 +146,7 @@ export function WaveformPlayer({ projectId, audioUrl, segments = [] }: WaveformP
         isPlaying={wavesurfer.isPlaying}
         isReady={wavesurfer.isReady}
         zoomLevel={zoomLevel}
-        hasPendingRegion={useEditorStore.getState().pendingRegion !== null}
+        hasPendingRegion={pendingRegion !== null}
         isCreatingSegment={createSegment.isPending}
         onPlayPause={wavesurfer.playPause}
         onZoom={handleZoom}
