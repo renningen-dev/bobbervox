@@ -42,7 +42,9 @@ Video dubbing workflow app: upload video → extract audio → select segments v
 - Video upload dropzone
 - Audio extraction trigger
 - WaveSurfer.js waveform player with region selection
-- Segment creation from waveform regions
+- Segment creation from waveform regions (auto-extracts audio)
+- Waveform region highlighting on segment card hover
+- Segment visibility toggle (eye icon)
 - SegmentCard with expandable details
 - AI analysis display (tone, emotion, pace)
 - Translation editor with save

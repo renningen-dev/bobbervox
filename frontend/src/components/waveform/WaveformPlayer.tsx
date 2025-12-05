@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useCreateSegment } from "../../features/segments/api";
 import { useWaveSurfer } from "../../hooks/useWaveSurfer";
@@ -8,6 +8,10 @@ import type { Segment } from "../../types";
 import { WaveformControls } from "./WaveformControls";
 import type { Region } from "wavesurfer.js/dist/plugins/regions.js";
 
+const REGION_COLOR_HIDDEN = "rgba(59, 130, 246, 0)";
+const REGION_COLOR_VISIBLE = "rgba(59, 130, 246, 0.3)";
+const REGION_HOVER_COLOR = "rgba(59, 130, 246, 0.6)";
+
 interface WaveformPlayerProps {
   projectId: string;
   audioUrl: string;
@@ -15,9 +19,9 @@ interface WaveformPlayerProps {
 }
 
 export function WaveformPlayer({ projectId, audioUrl, segments = [] }: WaveformPlayerProps) {
-  // Use state for container to trigger re-render when ref is set
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
   const [zoomLevel, setZoomLevel] = useState(50);
+  const [showAllSegments, setShowAllSegments] = useState(false);
   const pendingRegionRef = useRef<Region | null>(null);
 
   const setCurrentTime = useEditorStore((s) => s.setCurrentTime);
@@ -25,6 +29,7 @@ export function WaveformPlayer({ projectId, audioUrl, segments = [] }: WaveformP
   const setPendingRegion = useEditorStore((s) => s.setPendingRegion);
   const setSelectedRegionId = useEditorStore((s) => s.setSelectedRegionId);
   const pendingRegion = useEditorStore((s) => s.pendingRegion);
+  const hoveredSegmentId = useEditorStore((s) => s.hoveredSegmentId);
 
   const createSegment = useCreateSegment();
 
@@ -79,6 +84,39 @@ export function WaveformPlayer({ projectId, audioUrl, segments = [] }: WaveformP
     onRegionUpdated: handleRegionUpdated,
     onRegionClicked: handleRegionClicked,
   });
+
+  // Render existing segments as regions when ready, or when hover/visibility changes
+  useEffect(() => {
+    if (!wavesurfer.isReady) return;
+
+    // Clear existing segment regions
+    const existingRegions = wavesurfer.getRegions();
+    existingRegions.forEach((region) => {
+      if (region.id.startsWith("segment-")) {
+        region.remove();
+      }
+    });
+
+    // Add regions for each segment
+    segments.forEach((segment) => {
+      let color = REGION_COLOR_HIDDEN;
+
+      if (segment.id === hoveredSegmentId) {
+        // Hovered segment is always visible with highlight color
+        color = REGION_HOVER_COLOR;
+      } else if (showAllSegments) {
+        // Show all segments when toggle is on
+        color = REGION_COLOR_VISIBLE;
+      }
+
+      wavesurfer.addRegion(
+        segment.start_time,
+        segment.end_time,
+        `segment-${segment.id}`,
+        { color, drag: false, resize: false }
+      );
+    });
+  }, [wavesurfer.isReady, segments, wavesurfer, showAllSegments, hoveredSegmentId]);
 
   // Sync play state with store
   const handlePlayStateChange = useCallback((playing: boolean) => {
@@ -148,9 +186,11 @@ export function WaveformPlayer({ projectId, audioUrl, segments = [] }: WaveformP
         zoomLevel={zoomLevel}
         hasPendingRegion={pendingRegion !== null}
         isCreatingSegment={createSegment.isPending}
+        showAllSegments={showAllSegments}
         onPlayPause={wavesurfer.playPause}
         onZoom={handleZoom}
         onCreateSegment={handleCreateSegment}
+        onToggleShowSegments={() => setShowAllSegments(!showAllSegments)}
       />
 
       {/* Segments legend */}

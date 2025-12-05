@@ -31,10 +31,11 @@ export interface WaveSurferInstance {
   playPause: () => void;
   seekTo: (time: number) => void;
   zoom: (pxPerSec: number) => void;
-  addRegion: (start: number, end: number, id?: string) => Region | null;
+  addRegion: (start: number, end: number, id?: string, options?: { color?: string; drag?: boolean; resize?: boolean }) => Region | null;
   removeRegion: (id: string) => void;
   clearRegions: () => void;
   getRegions: () => Region[];
+  setRegionColor: (id: string, color: string) => void;
 }
 
 export function useWaveSurfer({
@@ -154,7 +155,12 @@ export function useWaveSurfer({
   }, []);
 
   // Region management
-  const addRegion = useCallback((start: number, end: number, id?: string): Region | null => {
+  const addRegion = useCallback((
+    start: number,
+    end: number,
+    id?: string,
+    options?: { color?: string; drag?: boolean; resize?: boolean }
+  ): Region | null => {
     const regions = regionsRef.current;
     if (!regions) return null;
 
@@ -162,9 +168,9 @@ export function useWaveSurfer({
       id,
       start,
       end,
-      color: "rgba(59, 130, 246, 0.3)",
-      drag: true,
-      resize: true,
+      color: options?.color ?? "rgba(59, 130, 246, 0.3)",
+      drag: options?.drag ?? true,
+      resize: options?.resize ?? true,
     });
   }, []);
 
@@ -185,6 +191,21 @@ export function useWaveSurfer({
     return regionsRef.current?.getRegions() ?? [];
   }, []);
 
+  const setRegionColor = useCallback((id: string, color: string) => {
+    const regions = regionsRef.current;
+    if (!regions) return;
+
+    const allRegions = regions.getRegions();
+    const region = allRegions.find((r) => r.id === id);
+    if (region) {
+      // Access the DOM element directly and change its background
+      const element = region.element;
+      if (element) {
+        element.style.backgroundColor = color;
+      }
+    }
+  }, []);
+
   return {
     isReady,
     isPlaying,
@@ -199,5 +220,6 @@ export function useWaveSurfer({
     removeRegion,
     clearRegions,
     getRegions,
+    setRegionColor,
   };
 }

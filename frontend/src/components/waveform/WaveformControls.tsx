@@ -1,4 +1,6 @@
 import {
+  EyeIcon,
+  EyeSlashIcon,
   MagnifyingGlassMinusIcon,
   MagnifyingGlassPlusIcon,
   PauseIcon,
@@ -13,9 +15,11 @@ interface WaveformControlsProps {
   zoomLevel: number;
   hasPendingRegion: boolean;
   isCreatingSegment: boolean;
+  showAllSegments: boolean;
   onPlayPause: () => void;
   onZoom: (level: number) => void;
   onCreateSegment: () => void;
+  onToggleShowSegments: () => void;
 }
 
 const MIN_ZOOM = 10;
@@ -28,9 +32,11 @@ export function WaveformControls({
   zoomLevel,
   hasPendingRegion,
   isCreatingSegment,
+  showAllSegments,
   onPlayPause,
   onZoom,
   onCreateSegment,
+  onToggleShowSegments,
 }: WaveformControlsProps) {
   const handleZoomIn = () => {
     const newLevel = Math.min(zoomLevel + ZOOM_STEP, MAX_ZOOM);
@@ -64,29 +70,48 @@ export function WaveformControls({
         </button>
       </div>
 
-      {/* Zoom controls */}
-      <div className="flex items-center gap-2">
+      {/* Zoom and segment visibility controls */}
+      <div className="flex items-center gap-4">
         <button
-          onClick={handleZoomOut}
-          disabled={!isReady || zoomLevel <= MIN_ZOOM}
-          className={cn(buttonStyles.base, buttonStyles.secondary, "p-2")}
-          title="Zoom out"
+          onClick={onToggleShowSegments}
+          disabled={!isReady}
+          className={cn(
+            buttonStyles.base,
+            showAllSegments ? buttonStyles.primary : buttonStyles.secondary,
+            "p-2"
+          )}
+          title={showAllSegments ? "Hide segments" : "Show segments"}
         >
-          <MagnifyingGlassMinusIcon className="w-4 h-4" />
+          {showAllSegments ? (
+            <EyeIcon className="w-4 h-4" />
+          ) : (
+            <EyeSlashIcon className="w-4 h-4" />
+          )}
         </button>
 
-        <span className="text-xs text-gray-500 w-12 text-center">
-          {zoomLevel}px/s
-        </span>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleZoomOut}
+            disabled={!isReady || zoomLevel <= MIN_ZOOM}
+            className={cn(buttonStyles.base, buttonStyles.secondary, "p-2")}
+            title="Zoom out"
+          >
+            <MagnifyingGlassMinusIcon className="w-4 h-4" />
+          </button>
 
-        <button
-          onClick={handleZoomIn}
-          disabled={!isReady || zoomLevel >= MAX_ZOOM}
-          className={cn(buttonStyles.base, buttonStyles.secondary, "p-2")}
-          title="Zoom in"
-        >
-          <MagnifyingGlassPlusIcon className="w-4 h-4" />
-        </button>
+          <span className="text-xs text-gray-500 w-12 text-center">
+            {zoomLevel}px/s
+          </span>
+
+          <button
+            onClick={handleZoomIn}
+            disabled={!isReady || zoomLevel >= MAX_ZOOM}
+            className={cn(buttonStyles.base, buttonStyles.secondary, "p-2")}
+            title="Zoom in"
+          >
+            <MagnifyingGlassPlusIcon className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* Create segment button */}

@@ -12,6 +12,7 @@ interface EditorState {
 
   // Waveform state
   selectedRegionId: string | null;
+  hoveredSegmentId: string | null;
   pendingRegion: PendingRegion | null;
   isPlaying: boolean;
   currentTime: number;
@@ -21,6 +22,7 @@ interface EditorState {
   // Actions
   setCurrentProjectId: (id: string | null) => void;
   setSelectedRegionId: (id: string | null) => void;
+  setHoveredSegmentId: (id: string | null) => void;
   setPendingRegion: (region: PendingRegion | null) => void;
   setIsPlaying: (playing: boolean) => void;
   setCurrentTime: (time: number) => void;
@@ -33,6 +35,7 @@ interface EditorState {
 const initialState = {
   currentProjectId: null,
   selectedRegionId: null,
+  hoveredSegmentId: null,
   pendingRegion: null,
   isPlaying: false,
   currentTime: 0,
@@ -45,6 +48,7 @@ export const useEditorStore = create<EditorState>((set) => ({
 
   setCurrentProjectId: (id) => set({ currentProjectId: id }),
   setSelectedRegionId: (id) => set({ selectedRegionId: id }),
+  setHoveredSegmentId: (id) => set({ hoveredSegmentId: id }),
   setPendingRegion: (region) => set({ pendingRegion: region }),
   setIsPlaying: (playing) => set({ isPlaying: playing }),
   setCurrentTime: (time) => set({ currentTime: time }),

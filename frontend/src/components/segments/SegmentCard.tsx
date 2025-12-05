@@ -14,6 +14,7 @@ import {
 } from "../../features/segments/api";
 import { getFileUrl } from "../../lib/api-client";
 import { buttonStyles, cardStyles, cn } from "../../lib/styles";
+import { useEditorStore } from "../../stores/editorStore";
 import type { Segment, TTSVoice } from "../../types";
 import { TTS_VOICES } from "../../types";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
@@ -50,6 +51,7 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
   const generateTTS = useGenerateTTS();
   const updateTranslation = useUpdateTranslation();
   const deleteSegment = useDeleteSegment();
+  const setHoveredSegmentId = useEditorStore((s) => s.setHoveredSegmentId);
 
   const handleAnalyze = async () => {
     try {
@@ -111,7 +113,11 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
 
   return (
     <>
-      <div className={cn(cardStyles.base, "overflow-hidden")}>
+      <div
+        className={cn(cardStyles.base, "overflow-hidden")}
+        onMouseEnter={() => setHoveredSegmentId(segment.id)}
+        onMouseLeave={() => setHoveredSegmentId(null)}
+      >
         {/* Header */}
         <div
           className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50"
