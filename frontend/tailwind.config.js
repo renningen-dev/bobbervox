@@ -13,6 +13,20 @@ export default {
     "shadow-inner",
     "shadow-white/10",
     "text-white",
+    // Transitions
+    "transition",
+    "transition-all",
+    "transition-opacity",
+    "transition-transform",
+    "duration-150",
+    "duration-200",
+    "duration-1000",
+    "ease-out",
+    "origin-top",
+    // Data-closed variants for HeadlessUI
+    "data-[closed]:opacity-0",
+    "data-[closed]:scale-95",
+    "data-[closed]:-translate-y-2",
   ],
   theme: {
     extend: {},

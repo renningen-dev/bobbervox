@@ -46,7 +46,7 @@ export function ProjectEditorPage() {
         >
           <ArrowLeftIcon className="w-5 h-5" />
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900">{project.name}</h1>
+        <h1 className="text-2xl font-bold text-gray-500">{project.name}</h1>
       </div>
 
       {!project.source_video ? (

@@ -98,8 +98,19 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
   };
 
   // Convert arrays to comma-separated strings for display
-  const emphasisText = currentAnalysis.emphasis.join(", ");
-  const pauseBeforeText = currentAnalysis.pause_before.join(", ");
+  // Handle both string[] and object[] from API
+  const toStringArray = (arr: unknown[]): string[] =>
+    arr.map((item) => {
+      if (typeof item === "string") return item;
+      if (item && typeof item === "object") {
+        // Try common properties, or JSON stringify
+        const obj = item as Record<string, unknown>;
+        return obj.word ?? obj.text ?? obj.value ?? JSON.stringify(item);
+      }
+      return String(item);
+    }) as string[];
+  const emphasisText = toStringArray(currentAnalysis.emphasis).join(", ");
+  const pauseBeforeText = toStringArray(currentAnalysis.pause_before).join(", ");
 
   const hasAnalysisEdits = localAnalysis !== null;
 
@@ -130,20 +141,25 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
 
   // Debounced auto-save for analysis
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasTriggeredAnalysisRef = useRef(false);
   const [isAnalyzingLocal, setIsAnalyzingLocal] = useState(false);
 
-  // Auto-trigger analysis when segment is extracted
+  // Auto-trigger analysis when segment is extracted (use ref to prevent double trigger)
   useEffect(() => {
-    if (segment.status === "extracted" && !isAnalyzingLocal) {
+    if (segment.status === "extracted" && !hasTriggeredAnalysisRef.current) {
+      hasTriggeredAnalysisRef.current = true;
       setIsAnalyzingLocal(true);
       analyzeSegment.mutate(segment.id);
     }
-  }, [segment.status, segment.id, analyzeSegment, isAnalyzingLocal]);
+  }, [segment.status, segment.id, analyzeSegment]);
 
-  // Clear analyzing state when we have results or error
+  // Clear analyzing state and reset local edits when new data arrives
   useEffect(() => {
     if (segment.analysis_json || segment.status === "analyzed" || segment.status === "error" || segment.status === "completed") {
       setIsAnalyzingLocal(false);
+      setLocalAnalysis(null);
+      setLocalTranslation(null);
+      hasTriggeredAnalysisRef.current = false; // Reset for potential retry
     }
   }, [segment.analysis_json, segment.status]);
 
@@ -212,7 +228,7 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
     : null;
 
   const isProcessing =
-    analyzeSegment.isPending ||
+    isAnalyzingLocal ||
     generateTTS.isPending;
 
   return (
@@ -237,6 +253,9 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
                 <div>
                   <span className="font-mono text-sm text-gray-600">
                     {formatTime(segment.start_time)} - {formatTime(segment.end_time)}
+                    <span className="text-gray-400 ml-1">
+                      ({(segment.end_time - segment.start_time).toFixed(1)}s)
+                    </span>
                   </span>
                 </div>
               </div>
@@ -276,7 +295,10 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
             </DisclosureButton>
 
             {/* Expanded content */}
-            <DisclosurePanel className="border-t border-gray-100 p-4 space-y-4">
+            <DisclosurePanel
+              transition
+              className="border-t border-gray-100 p-4 space-y-4 origin-top transition-all duration-200 ease-out data-[closed]:opacity-0 data-[closed]:-translate-y-2"
+            >
             {/* Segment audio player */}
             {audioUrl && (
               <div>

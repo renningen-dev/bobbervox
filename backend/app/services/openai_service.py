@@ -40,10 +40,15 @@ The audio is from a fishing video. Your task is to:
    - Emotion
    - Speaking style (including hints for casual, outdoor, relaxed, or energetic context)
    - Pace, rhythm, and intonation
-   - Volume, emphasis, and natural pauses"""
+   - Volume and natural pauses
+4. For the TRANSLATED English text, identify:
+   - Words that should be emphasized (emphasis)
+   - Words that should have a pause before them (pause_before)"""
 
 AUDIO_ANALYSIS_USER_PROMPT = """Output everything in JSON format exactly like this:
-{ "transcription": "...", "translated_text": "...", "tone": "...", "emotion": "...", "style": "...", "pace": "...", "intonation": "...", "voice": "...", "tempo": "...", "emphasis": [...], "pause_before": [...] }"""
+{ "transcription": "...", "translated_text": "...", "tone": "...", "emotion": "...", "style": "...", "pace": "...", "intonation": "...", "voice": "...", "tempo": "...", "emphasis": ["word1", "word2"], "pause_before": ["word1", "word2"] }
+
+The "emphasis" and "pause_before" arrays should contain words from the translated_text that need emphasis or pauses."""
 
 
 class OpenAIService:
