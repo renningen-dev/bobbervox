@@ -1,8 +1,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster } from "sonner";
 import { AuthProvider, ProtectedRoute } from "./components/auth";
 import { Layout } from "./components/layout/Layout";
+import { LandingPage } from "./pages/LandingPage";
 import { LoginPage } from "./pages/LoginPage";
 import { ProjectEditorPage } from "./pages/ProjectEditorPage";
 import { ProjectListPage } from "./pages/ProjectListPage";
@@ -24,21 +25,20 @@ function App() {
         <BrowserRouter>
           <Routes>
             {/* Public routes */}
+            <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
 
-            {/* Protected routes */}
+            {/* Protected routes with layout */}
             <Route
-              path="/"
               element={
                 <ProtectedRoute>
                   <Layout />
                 </ProtectedRoute>
               }
             >
-              <Route index element={<Navigate to="/projects" replace />} />
-              <Route path="projects" element={<ProjectListPage />} />
-              <Route path="projects/:projectId" element={<ProjectEditorPage />} />
-              <Route path="settings" element={<SettingsPage />} />
+              <Route path="/projects" element={<ProjectListPage />} />
+              <Route path="/projects/:projectId" element={<ProjectEditorPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
             </Route>
           </Routes>
         </BrowserRouter>
