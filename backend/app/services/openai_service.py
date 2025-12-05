@@ -112,6 +112,10 @@ class OpenAIService:
             else:
                 json_str = content.strip()
 
+            if not json_str:
+                logger.error(f"Empty JSON after extraction from: {content!r}")
+                raise ExternalAPIError("OpenAI returned no parseable JSON content")
+
             logger.info(f"Parsing JSON: {json_str!r}")
             result = json.loads(json_str)
         except (json.JSONDecodeError, IndexError) as e:

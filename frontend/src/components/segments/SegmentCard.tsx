@@ -55,7 +55,10 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedVoice, setSelectedVoice] = useState<TTSVoice>("alloy");
-  const [translationText, setTranslationText] = useState(segment.translated_text || "");
+  // Track local edits to translation, null means no local edits (use segment value)
+  const [localTranslation, setLocalTranslation] = useState<string | null>(null);
+  const translationText = localTranslation ?? segment.translated_text ?? "";
+  const hasLocalEdits = localTranslation !== null && localTranslation !== (segment.translated_text ?? "");
 
   const analyzeSegment = useAnalyzeSegment();
   const generateTTS = useGenerateTTS();
@@ -90,6 +93,7 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
         segmentId: segment.id,
         data: { translated_text: translationText },
       });
+      setLocalTranslation(null); // Clear local edits after save
       toast.success("Translation saved");
     } catch {
       toast.error("Failed to save translation");
@@ -238,18 +242,20 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
                 </h4>
                 <textarea
                   value={translationText}
-                  onChange={(e) => setTranslationText(e.target.value)}
+                  onChange={(e) => setLocalTranslation(e.target.value)}
                   className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                   rows={3}
                   placeholder="Enter translated text..."
                 />
-                <button
-                  onClick={handleSaveTranslation}
-                  disabled={updateTranslation.isPending}
-                  className={cn(buttonStyles.base, buttonStyles.secondary, "mt-2")}
-                >
-                  {updateTranslation.isPending ? "Saving..." : "Save Translation"}
-                </button>
+                {hasLocalEdits && (
+                  <button
+                    onClick={handleSaveTranslation}
+                    disabled={updateTranslation.isPending}
+                    className={cn(buttonStyles.base, buttonStyles.secondary, "mt-2")}
+                  >
+                    {updateTranslation.isPending ? "Saving..." : "Save Translation"}
+                  </button>
+                )}
               </div>
             )}
 

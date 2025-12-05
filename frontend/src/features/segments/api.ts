@@ -109,6 +109,10 @@ export function useAnalyzeSegment() {
       queryClient.invalidateQueries({
         queryKey: segmentKeys.list(data.project_id),
       });
+      // Also invalidate project details since it includes segments
+      queryClient.invalidateQueries({
+        queryKey: projectKeys.detail(data.project_id),
+      });
     },
   });
 }
@@ -131,6 +135,10 @@ export function useGenerateTTS() {
       queryClient.invalidateQueries({
         queryKey: segmentKeys.list(data.project_id),
       });
+      // Also invalidate project details since it includes segments
+      queryClient.invalidateQueries({
+        queryKey: projectKeys.detail(data.project_id),
+      });
     },
   });
 }
@@ -152,6 +160,10 @@ export function useUpdateTranslation() {
       });
       queryClient.invalidateQueries({
         queryKey: segmentKeys.list(data.project_id),
+      });
+      // Also invalidate project details since it includes segments
+      queryClient.invalidateQueries({
+        queryKey: projectKeys.detail(data.project_id),
       });
     },
   });
