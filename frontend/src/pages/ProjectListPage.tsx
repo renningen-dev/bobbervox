@@ -1,13 +1,25 @@
-import { PlusIcon } from "@heroicons/react/24/outline";
+import { PlusIcon, Squares2X2Icon, TableCellsIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
 import { CreateProjectDialog } from "../components/projects/CreateProjectDialog";
 import { ProjectCard } from "../components/projects/ProjectCard";
+import { ProjectTable } from "../components/projects/ProjectTable";
 import { useProjects } from "../features/projects/api";
 import { buttonStyles, cardStyles, cn } from "../lib/styles";
+
+type ViewMode = "grid" | "table";
 
 export function ProjectListPage() {
   const { data: projects, isLoading, error } = useProjects();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    const saved = localStorage.getItem("projectViewMode");
+    return (saved === "table" || saved === "grid") ? saved : "grid";
+  });
+
+  const handleViewModeChange = (mode: ViewMode) => {
+    setViewMode(mode);
+    localStorage.setItem("projectViewMode", mode);
+  };
 
   if (isLoading) {
     return (
@@ -29,13 +41,42 @@ export function ProjectListPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-medium text-gray-600 dark:text-gray-400">Projects</h1>
-        <button
-          onClick={() => setIsCreateOpen(true)}
-          className={cn(buttonStyles.base, buttonStyles.primary)}
-        >
-          <PlusIcon className="w-5 h-5 mr-2" />
-          New Project
-        </button>
+        <div className="flex items-center gap-2">
+          {/* View Switcher */}
+          <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+            <button
+              onClick={() => handleViewModeChange("grid")}
+              className={cn(
+                "p-1.5 rounded-md transition-colors",
+                viewMode === "grid"
+                  ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+              )}
+              title="Grid view"
+            >
+              <Squares2X2Icon className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => handleViewModeChange("table")}
+              className={cn(
+                "p-1.5 rounded-md transition-colors",
+                viewMode === "table"
+                  ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+              )}
+              title="Table view"
+            >
+              <TableCellsIcon className="w-5 h-5" />
+            </button>
+          </div>
+          <button
+            onClick={() => setIsCreateOpen(true)}
+            className={cn(buttonStyles.base, buttonStyles.primary)}
+          >
+            <PlusIcon className="w-5 h-5 mr-2" />
+            New Project
+          </button>
+        </div>
       </div>
 
       {projects?.length === 0 ? (
@@ -49,12 +90,14 @@ export function ProjectListPage() {
             Create your first project
           </button>
         </div>
-      ) : (
+      ) : viewMode === "grid" ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {projects?.map((project) => (
             <ProjectCard key={project.id} project={project} />
           ))}
         </div>
+      ) : (
+        <ProjectTable projects={projects ?? []} />
       )}
 
       <CreateProjectDialog
