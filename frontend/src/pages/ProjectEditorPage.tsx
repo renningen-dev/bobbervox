@@ -58,7 +58,7 @@ export function ProjectEditorPage() {
         <div className="space-y-6">
           <WaveformPlayer
             projectId={project.id}
-            audioUrl={`http://localhost:8000/api/files/${project.id}/audio/${project.extracted_audio}`}
+            audioUrl={`http://localhost:8000/api/files/${project.id}/audio/full_audio.wav`}
             segments={project.segments}
           />
           <SegmentList segments={project.segments} projectId={project.id} />

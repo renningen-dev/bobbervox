@@ -30,6 +30,11 @@ function formatTime(seconds: number): string {
   return `${mins.toString().padStart(2, "0")}:${secs.toFixed(2).padStart(5, "0")}`;
 }
 
+// Extract just the filename from a path like "project_id/segments/file.wav"
+function getFilename(path: string): string {
+  return path.split("/").pop() || path;
+}
+
 const statusColors: Record<string, string> = {
   created: "bg-gray-100 text-gray-700",
   extracting: "bg-yellow-100 text-yellow-700",
@@ -109,11 +114,11 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
   };
 
   const audioUrl = segment.audio_file
-    ? `http://localhost:8000/api/files/${projectId}/segments/${segment.audio_file}`
+    ? `http://localhost:8000/api/files/${projectId}/segments/${getFilename(segment.audio_file)}`
     : null;
 
   const ttsUrl = segment.tts_result_file
-    ? `http://localhost:8000/api/files/${projectId}/output/${segment.tts_result_file}`
+    ? `http://localhost:8000/api/files/${projectId}/output/${getFilename(segment.tts_result_file)}`
     : null;
 
   const isProcessing =

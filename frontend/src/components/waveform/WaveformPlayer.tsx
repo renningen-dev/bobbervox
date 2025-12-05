@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { useCreateSegment } from "../../features/segments/api";
 import { useWaveSurfer } from "../../hooks/useWaveSurfer";
@@ -15,7 +15,8 @@ interface WaveformPlayerProps {
 }
 
 export function WaveformPlayer({ projectId, audioUrl, segments = [] }: WaveformPlayerProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
+  // Use state for container to trigger re-render when ref is set
+  const [container, setContainer] = useState<HTMLDivElement | null>(null);
   const [zoomLevel, setZoomLevel] = useState(50);
 
   const setCurrentTime = useEditorStore((s) => s.setCurrentTime);
@@ -63,7 +64,7 @@ export function WaveformPlayer({ projectId, audioUrl, segments = [] }: WaveformP
   }, [setSelectedRegionId]);
 
   const wavesurfer = useWaveSurfer({
-    container: containerRef.current,
+    container,
     audioUrl,
     onReady: handleReady,
     onTimeUpdate: handleTimeUpdate,
@@ -123,7 +124,7 @@ export function WaveformPlayer({ projectId, audioUrl, segments = [] }: WaveformP
     <div className={cn(cardStyles.base, "p-4")}>
       {/* Waveform container */}
       <div
-        ref={containerRef}
+        ref={setContainer}
         className="w-full min-h-[128px] bg-gray-50 rounded"
       />
 
