@@ -24,7 +24,7 @@ export function ProjectEditorPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading project...</div>
+        <div className="text-gray-500 dark:text-gray-400">Loading project...</div>
       </div>
     );
   }
@@ -32,7 +32,7 @@ export function ProjectEditorPage() {
   if (error || !project) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-red-500">Failed to load project</div>
+        <div className="text-red-500 dark:text-red-400">Failed to load project</div>
       </div>
     );
   }
@@ -46,14 +46,14 @@ export function ProjectEditorPage() {
         >
           <ArrowLeftIcon className="w-5 h-5" />
         </Link>
-        <h1 className="text-2xl font-bold text-gray-500">{project.name}</h1>
+        <h1 className="text-xl font-medium text-gray-600 dark:text-gray-400">{project.name}</h1>
       </div>
 
       {!project.source_video ? (
         <VideoUploadDropzone projectId={project.id} />
       ) : !project.extracted_audio ? (
         <div className={cn(cardStyles.base, "p-8 text-center")}>
-          <p className="text-gray-600 mb-4">Video uploaded. Extract audio to continue.</p>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">Video uploaded. Extract audio to continue.</p>
           <AudioExtractionButton projectId={project.id} />
         </div>
       ) : (

@@ -47,14 +47,14 @@ function formatTime(seconds: number): string {
 }
 
 const statusColors: Record<string, string> = {
-  created: "bg-gray-100 text-gray-700",
-  extracting: "bg-yellow-100 text-yellow-700",
-  extracted: "bg-blue-100 text-blue-700",
-  analyzing: "bg-purple-100 text-purple-700",
-  analyzed: "bg-indigo-100 text-indigo-700",
-  generating_tts: "bg-orange-100 text-orange-700",
-  completed: "bg-green-100 text-green-700",
-  error: "bg-red-100 text-red-700",
+  created: "bg-gray-100 text-gray-700 dark:bg-gray-500/20 dark:text-gray-300",
+  extracting: "bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-300",
+  extracted: "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300",
+  analyzing: "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300",
+  analyzed: "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300",
+  generating_tts: "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300",
+  completed: "bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300",
+  error: "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300",
 };
 
 export function SegmentCard({ segment, projectId }: SegmentCardProps) {
@@ -242,7 +242,7 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
         {({ open }) => (
           <>
             {/* Header */}
-            <DisclosureButton className="w-full p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 text-left">
+            <DisclosureButton className="w-full p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 text-left">
               <div className="flex items-center gap-3">
                 <ChevronDownIcon
                   className={cn(
@@ -251,7 +251,7 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
                   )}
                 />
                 <div>
-                  <span className="font-mono text-sm text-gray-600">
+                  <span className="font-mono text-sm text-gray-600 dark:text-gray-300">
                     {formatTime(segment.start_time)} - {formatTime(segment.end_time)}
                     <span className="text-gray-400 ml-1">
                       ({(segment.end_time - segment.start_time).toFixed(1)}s)
@@ -262,12 +262,12 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
 
               <div className="flex items-center gap-2">
                 {(isAnalyzingLocal || (segment.status === "analyzing" && !segment.analysis_json)) ? (
-                  <span className="flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">
+                  <span className="flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300">
                     <Spinner size="xs" />
                     Analyzing...
                   </span>
                 ) : (segment.status === "generating_tts" || generateTTS.isPending) ? (
-                  <span className="flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">
+                  <span className="flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300">
                     <Spinner size="xs" />
                     Generating TTS...
                   </span>
@@ -297,12 +297,12 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
             {/* Expanded content */}
             <DisclosurePanel
               transition
-              className="border-t border-gray-100 p-4 space-y-4 origin-top transition-all duration-200 ease-out data-[closed]:opacity-0 data-[closed]:-translate-y-2"
+              className="border-t border-gray-100 dark:border-gray-700 p-4 space-y-4 origin-top transition-all duration-200 ease-out data-[closed]:opacity-0 data-[closed]:-translate-y-2"
             >
             {/* Segment audio player */}
             {audioUrl && (
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">
+                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Segment Audio
                 </h4>
                 <audio src={audioUrl} controls className="w-full h-8" />
@@ -311,10 +311,10 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
 
             {/* Error display with retry */}
             {segment.status === "error" && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                <p className="text-sm font-medium text-red-700 mb-1">Analysis Failed</p>
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                <p className="text-sm font-medium text-red-700 dark:text-red-400 mb-1">Analysis Failed</p>
                 {segment.error_message && (
-                  <p className="text-sm text-red-600 mb-3">{segment.error_message}</p>
+                  <p className="text-sm text-red-600 dark:text-red-400 mb-3">{segment.error_message}</p>
                 )}
                 <button
                   onClick={() => analyzeSegment.mutate(segment.id)}
@@ -330,96 +330,96 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
             {segment.analysis_json && (
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-sm font-medium text-gray-700">AI Analysis</h4>
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">AI Analysis</h4>
                   {updateAnalysis.isPending && <Spinner size="sm" />}
                 </div>
-                <div className="bg-gray-50 rounded-lg p-3 space-y-3 text-sm">
+                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 space-y-3 text-sm">
                   {segment.original_transcription && (
                     <div>
-                      <span className="font-medium text-gray-600">Transcription: </span>
-                      <span className="text-gray-800">{segment.original_transcription}</span>
+                      <span className="font-medium text-gray-600 dark:text-gray-400">Transcription: </span>
+                      <span className="text-gray-800 dark:text-gray-200">{segment.original_transcription}</span>
                     </div>
                   )}
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block font-medium text-gray-600 mb-1">Tone</label>
+                      <label className="block font-medium text-gray-600 dark:text-gray-400 mb-1">Tone</label>
                       <input
                         type="text"
                         value={currentAnalysis.tone}
                         onChange={(e) => updateAnalysisField("tone", e.target.value)}
-                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-0 dark:outline dark:outline-white/10 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                     </div>
                     <div>
-                      <label className="block font-medium text-gray-600 mb-1">Emotion</label>
+                      <label className="block font-medium text-gray-600 dark:text-gray-400 mb-1">Emotion</label>
                       <input
                         type="text"
                         value={currentAnalysis.emotion}
                         onChange={(e) => updateAnalysisField("emotion", e.target.value)}
-                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-0 dark:outline dark:outline-white/10 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                     </div>
                     <div>
-                      <label className="block font-medium text-gray-600 mb-1">Style</label>
+                      <label className="block font-medium text-gray-600 dark:text-gray-400 mb-1">Style</label>
                       <input
                         type="text"
                         value={currentAnalysis.style}
                         onChange={(e) => updateAnalysisField("style", e.target.value)}
-                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-0 dark:outline dark:outline-white/10 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                     </div>
                     <div>
-                      <label className="block font-medium text-gray-600 mb-1">Pace</label>
+                      <label className="block font-medium text-gray-600 dark:text-gray-400 mb-1">Pace</label>
                       <input
                         type="text"
                         value={currentAnalysis.pace}
                         onChange={(e) => updateAnalysisField("pace", e.target.value)}
-                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-0 dark:outline dark:outline-white/10 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                     </div>
                     <div>
-                      <label className="block font-medium text-gray-600 mb-1">Intonation</label>
+                      <label className="block font-medium text-gray-600 dark:text-gray-400 mb-1">Intonation</label>
                       <input
                         type="text"
                         value={currentAnalysis.intonation}
                         onChange={(e) => updateAnalysisField("intonation", e.target.value)}
-                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-0 dark:outline dark:outline-white/10 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                     </div>
                     <div>
-                      <label className="block font-medium text-gray-600 mb-1">Voice</label>
+                      <label className="block font-medium text-gray-600 dark:text-gray-400 mb-1">Voice</label>
                       <input
                         type="text"
                         value={currentAnalysis.voice}
                         onChange={(e) => updateAnalysisField("voice", e.target.value)}
-                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-0 dark:outline dark:outline-white/10 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                     </div>
                     <div>
-                      <label className="block font-medium text-gray-600 mb-1">Tempo</label>
+                      <label className="block font-medium text-gray-600 dark:text-gray-400 mb-1">Tempo</label>
                       <input
                         type="text"
                         value={currentAnalysis.tempo}
                         onChange={(e) => updateAnalysisField("tempo", e.target.value)}
-                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-0 dark:outline dark:outline-white/10 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                     </div>
                     <div>
-                      <label className="block font-medium text-gray-600 mb-1">Emphasis</label>
+                      <label className="block font-medium text-gray-600 dark:text-gray-400 mb-1">Emphasis</label>
                       <input
                         type="text"
                         value={emphasisText}
                         onChange={(e) => updateArrayField("emphasis", e.target.value)}
-                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-0 dark:outline dark:outline-white/10 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                     </div>
                     <div>
-                      <label className="block font-medium text-gray-600 mb-1">Pause before</label>
+                      <label className="block font-medium text-gray-600 dark:text-gray-400 mb-1">Pause before</label>
                       <input
                         type="text"
                         value={pauseBeforeText}
                         onChange={(e) => updateArrayField("pause_before", e.target.value)}
-                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-0 dark:outline dark:outline-white/10 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                     </div>
                   </div>
@@ -430,13 +430,13 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
             {/* Translation editor */}
             {(segment.status === "analyzed" || segment.status === "completed" || segment.status === "generating_tts") && (
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">
+                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Translation
                 </h4>
                 <textarea
                   value={translationText}
                   onChange={(e) => setLocalTranslation(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-0 dark:outline dark:outline-white/10 rounded-lg shadow-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   rows={3}
                   placeholder="Enter translated text..."
                 />
@@ -455,7 +455,7 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
             {/* TTS controls */}
             {(segment.status === "analyzed" || segment.status === "completed") && (
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">
+                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Text-to-Speech
                 </h4>
                 <div className="flex items-center gap-2">
@@ -480,7 +480,7 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
             {/* TTS result player */}
             {ttsUrl && (
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Generated Audio</h4>
+                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Generated Audio</h4>
                 <div className="flex items-center gap-2">
                   <audio src={ttsUrl} controls className="flex-1 h-8" />
                   <a

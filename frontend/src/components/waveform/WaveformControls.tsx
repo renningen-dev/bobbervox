@@ -58,7 +58,7 @@ export function WaveformControls({
           className={cn(
             buttonStyles.base,
             buttonStyles.primary,
-            "w-10 h-10 p-0"
+            "w-14 h-10 p-0"
           )}
           title={isPlaying ? "Pause" : "Play"}
         >
@@ -99,7 +99,7 @@ export function WaveformControls({
             <MagnifyingGlassMinusIcon className="w-4 h-4" />
           </button>
 
-          <span className="text-xs text-gray-500 w-12 text-center">
+          <span className="text-xs text-gray-500 dark:text-gray-400 w-12 text-center">
             {zoomLevel}px/s
           </span>
 

@@ -31,25 +31,25 @@ export function ProjectCard({ project }: ProjectCardProps) {
     <>
       <div className={cn(cardStyles.base, "p-4 hover:shadow-md transition-shadow")}>
         <Link to={`/projects/${project.id}`} className="block">
-          <h3 className="font-medium text-gray-900 truncate">{project.name}</h3>
-          <div className="mt-2 flex items-center gap-4 text-sm text-gray-500">
+          <h3 className="font-medium text-gray-900 dark:text-white truncate">{project.name}</h3>
+          <div className="mt-2 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
             <span>{formattedDate}</span>
             <span>{project.segment_count} segments</span>
           </div>
           <div className="mt-2">
             {project.source_video ? (
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300">
                 Video uploaded
               </span>
             ) : (
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-500/20 dark:text-gray-400">
                 No video
               </span>
             )}
           </div>
         </Link>
 
-        <div className="mt-3 pt-3 border-t border-gray-100 flex justify-end">
+        <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 flex justify-end">
           <button
             onClick={(e) => {
               e.preventDefault();

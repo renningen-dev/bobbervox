@@ -12,7 +12,7 @@ export function ProjectListPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading projects...</div>
+        <div className="text-gray-500 dark:text-gray-400">Loading projects...</div>
       </div>
     );
   }
@@ -20,7 +20,7 @@ export function ProjectListPage() {
   if (error) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-red-500">Failed to load projects</div>
+        <div className="text-red-500 dark:text-red-400">Failed to load projects</div>
       </div>
     );
   }
@@ -28,7 +28,7 @@ export function ProjectListPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-500">Projects</h1>
+        <h1 className="text-xl font-medium text-gray-600 dark:text-gray-400">Projects</h1>
         <button
           onClick={() => setIsCreateOpen(true)}
           className={cn(buttonStyles.base, buttonStyles.primary)}
@@ -40,7 +40,7 @@ export function ProjectListPage() {
 
       {projects?.length === 0 ? (
         <div className={cn(cardStyles.base, "p-12 text-center")}>
-          <p className="text-gray-500 mb-4">No projects yet</p>
+          <p className="text-gray-500 dark:text-gray-400 mb-4">No projects yet</p>
           <button
             onClick={() => setIsCreateOpen(true)}
             className={cn(buttonStyles.base, buttonStyles.primary)}

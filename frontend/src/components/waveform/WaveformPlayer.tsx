@@ -170,11 +170,11 @@ export function WaveformPlayer({ projectId, audioUrl, segments = [] }: WaveformP
       {/* Waveform container */}
       <div
         ref={setContainer}
-        className="w-full min-h-[128px] bg-gray-50 rounded"
+        className="w-full min-h-[128px] bg-gray-50 dark:bg-gray-900 dark:outline dark:outline-white/5 rounded-lg"
       />
 
       {/* Time display */}
-      <div className="mt-2 flex justify-between text-sm text-gray-500 font-mono">
+      <div className="mt-2 flex justify-between text-sm text-gray-500 dark:text-gray-400 font-mono">
         <span>{formatTime(wavesurfer.currentTime)}</span>
         <span>{formatTime(wavesurfer.duration)}</span>
       </div>

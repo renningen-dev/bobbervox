@@ -51,11 +51,11 @@ export function CreateProjectDialog({ isOpen, onClose }: CreateProjectDialogProp
 
   return (
     <Dialog open={isOpen} onClose={handleClose} className="relative z-50">
-      <DialogBackdrop transition className="fixed inset-0 bg-black/30 transition-opacity duration-200 data-[closed]:opacity-0" />
+      <DialogBackdrop transition className="fixed inset-0 bg-black/30 dark:bg-black/70 transition-opacity duration-200 data-[closed]:opacity-0" />
 
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <DialogPanel transition className="w-full max-w-md bg-white rounded-lg shadow-xl p-6 transition duration-200 ease-out data-[closed]:opacity-0 data-[closed]:scale-95">
-          <DialogTitle className="text-lg font-medium text-gray-900">
+        <DialogPanel transition className="w-full max-w-md bg-white dark:bg-gray-800 rounded-xl shadow-xl dark:outline dark:outline-white/15 p-6 transition duration-200 ease-out data-[closed]:opacity-0 data-[closed]:scale-95">
+          <DialogTitle className="text-lg font-medium text-gray-900 dark:text-white">
             Create New Project
           </DialogTitle>
 
@@ -63,7 +63,7 @@ export function CreateProjectDialog({ isOpen, onClose }: CreateProjectDialogProp
             <div>
               <label
                 htmlFor="name"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
               >
                 Project Name
               </label>
@@ -76,7 +76,7 @@ export function CreateProjectDialog({ isOpen, onClose }: CreateProjectDialogProp
                 autoFocus
               />
               {errors.name && (
-                <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name.message}</p>
               )}
             </div>
 

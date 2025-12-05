@@ -12,7 +12,7 @@ interface SegmentListProps {
 export function SegmentList({ segments = [], projectId }: SegmentListProps) {
   if (!segments || segments.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
+      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
         <p>No segments yet.</p>
         <p className="text-sm mt-1">
           Drag on the waveform to select a region and create a segment.
@@ -31,7 +31,7 @@ export function SegmentList({ segments = [], projectId }: SegmentListProps) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium text-gray-900">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
           Segments ({segments.length})
         </h3>
         {hasTTSResults && (

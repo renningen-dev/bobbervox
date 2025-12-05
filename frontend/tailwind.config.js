@@ -1,10 +1,24 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: "class",
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   safelist: [
+    // Primary button colors
+    "bg-purple-700",
+    "hover:bg-purple-600",
+    "shadow-purple-500/20",
+    // Secondary button colors
+    "bg-gray-200",
+    "bg-gray-700",
+    "hover:bg-gray-300",
+    "hover:bg-gray-600",
+    "dark:bg-gray-700",
+    "dark:hover:bg-gray-600",
+    "dark:text-gray-200",
+    // Legacy
     "bg-gray-500",
     "bg-gray-400",
     "bg-red-600",

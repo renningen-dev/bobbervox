@@ -53,7 +53,7 @@ export function VideoUploadDropzone({ projectId }: VideoUploadDropzoneProps) {
       className={cn(
         cardStyles.base,
         "p-12 border-2 border-dashed cursor-pointer transition-colors",
-        isDragActive ? "border-blue-500 bg-blue-50" : "border-gray-300 hover:border-gray-400",
+        isDragActive ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20" : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500",
         uploadVideo.isPending && "opacity-50 cursor-not-allowed"
       )}
     >
@@ -64,8 +64,8 @@ export function VideoUploadDropzone({ projectId }: VideoUploadDropzoneProps) {
 
         {uploadVideo.isPending ? (
           <div className="mt-4">
-            <p className="text-sm text-gray-600">Uploading video...</p>
-            <div className="mt-2 w-48 mx-auto bg-gray-200 rounded-full h-2">
+            <p className="text-sm text-gray-600 dark:text-gray-400">Uploading video...</p>
+            <div className="mt-2 w-48 mx-auto bg-gray-200 dark:bg-gray-700 rounded-full h-2">
               <div
                 className="bg-blue-600 h-2 rounded-full transition-all"
                 style={{ width: `${uploadProgress || 10}%` }}
@@ -74,12 +74,12 @@ export function VideoUploadDropzone({ projectId }: VideoUploadDropzoneProps) {
           </div>
         ) : (
           <>
-            <p className="mt-4 text-sm text-gray-600">
+            <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
               {isDragActive
                 ? "Drop the video here"
                 : "Drag and drop a video file, or click to select"}
             </p>
-            <p className="mt-2 text-xs text-gray-500">
+            <p className="mt-2 text-xs text-gray-500 dark:text-gray-500">
               MP4, MOV, AVI, MKV, or WebM up to 500MB
             </p>
           </>
