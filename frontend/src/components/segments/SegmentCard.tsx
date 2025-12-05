@@ -14,6 +14,7 @@ import {
   useGenerateTTS,
   useUpdateTranslation,
 } from "../../features/segments/api";
+import { getFileUrl } from "../../lib/api-client";
 import { buttonStyles, cardStyles, cn } from "../../lib/styles";
 import type { Segment, TTSVoice } from "../../types";
 import { TTS_VOICES } from "../../types";
@@ -28,11 +29,6 @@ function formatTime(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
   return `${mins.toString().padStart(2, "0")}:${secs.toFixed(2).padStart(5, "0")}`;
-}
-
-// Extract just the filename from a path like "project_id/segments/file.wav"
-function getFilename(path: string): string {
-  return path.split("/").pop() || path;
 }
 
 const statusColors: Record<string, string> = {
@@ -114,11 +110,11 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
   };
 
   const audioUrl = segment.audio_file
-    ? `http://localhost:8000/api/files/${projectId}/segments/${getFilename(segment.audio_file)}`
+    ? getFileUrl(projectId, "segments", segment.audio_file.split("/").pop() || segment.audio_file)
     : null;
 
   const ttsUrl = segment.tts_result_file
-    ? `http://localhost:8000/api/files/${projectId}/output/${getFilename(segment.tts_result_file)}`
+    ? getFileUrl(projectId, "output", segment.tts_result_file.split("/").pop() || segment.tts_result_file)
     : null;
 
   const isProcessing =

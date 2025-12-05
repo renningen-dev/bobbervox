@@ -7,6 +7,7 @@ import { SegmentList } from "../components/segments/SegmentList";
 import { Spinner } from "../components/ui/Spinner";
 import { WaveformPlayer } from "../components/waveform/WaveformPlayer";
 import { useExtractAudio, useProject } from "../features/projects/api";
+import { getFileUrl } from "../lib/api-client";
 import { buttonStyles, cardStyles, cn } from "../lib/styles";
 import { useEditorStore } from "../stores/editorStore";
 
@@ -59,7 +60,7 @@ export function ProjectEditorPage() {
         <div className="space-y-6">
           <WaveformPlayer
             projectId={project.id}
-            audioUrl={`http://localhost:8000/api/files/${project.id}/audio/full_audio.wav`}
+            audioUrl={getFileUrl(project.id, "audio", "full_audio.wav")}
             segments={project.segments}
           />
           <SegmentList segments={project.segments} projectId={project.id} />

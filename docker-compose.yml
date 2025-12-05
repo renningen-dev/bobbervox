@@ -1,0 +1,30 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./data/bobbervox.db
+      - PROJECTS_DIR=/app/projects
+      - CORS_ORIGINS=["http://localhost","http://localhost:80"]
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    volumes:
+      - backend_data:/app/data
+      - projects_data:/app/projects
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  backend_data:
+  projects_data:

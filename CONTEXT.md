@@ -11,7 +11,7 @@ Video dubbing workflow app: upload video → extract audio → select segments v
 
 ## Current State
 
-**Phases 1-7 Complete** - Full application functional. Frontend and backend integration done.
+**All Phases Complete** - Full application functional with Docker support.
 
 ### Working Features
 
@@ -49,9 +49,12 @@ Video dubbing workflow app: upload video → extract audio → select segments v
 - TTS voice selector and generation
 - Audio players for segments and TTS results
 
-### Not Yet Implemented
-
-- Phase 8: Docker
+#### Docker (Phase 8)
+- Backend Dockerfile with Python 3.11 + FFmpeg + libmagic
+- Frontend multi-stage Dockerfile (Node build → nginx serve)
+- docker-compose.yml for full stack deployment
+- nginx proxy configuration for API routing
+- Environment-aware API client (relative URLs in Docker)
 
 ## Key Technical Decisions
 
@@ -134,13 +137,19 @@ make lint      # ESLint
 
 4. **File uploads**: Use `file.file` (SpooledTemporaryFile) not `file` directly.
 
-## Next Steps (Phase 8 - Polish & Docker)
+## Docker Deployment
 
-1. Add error boundaries for graceful error handling
-2. Implement keyboard shortcuts for common actions
-3. Create backend Dockerfile with FFmpeg
-4. Create frontend production build config
-5. Write docker-compose.yml for full stack
+```bash
+# Copy and configure environment
+cp .env.example .env
+# Edit .env and add your OPENAI_API_KEY
+
+# Build and run
+docker compose up --build
+
+# Access the app at http://localhost
+# API available at http://localhost/api
+```
 
 ## API Design Reference
 
