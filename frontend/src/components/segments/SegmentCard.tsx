@@ -12,12 +12,22 @@ import {
   useGenerateTTS,
   useUpdateTranslation,
 } from "../../features/segments/api";
-import { getFileUrl } from "../../lib/api-client";
+import { ApiError, getFileUrl } from "../../lib/api-client";
 import { buttonStyles, cardStyles, cn } from "../../lib/styles";
 import { useEditorStore } from "../../stores/editorStore";
 import type { Segment, TTSVoice } from "../../types";
 import { TTS_VOICES } from "../../types";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof ApiError && error.data) {
+    const data = error.data as { detail?: string };
+    if (data.detail) {
+      return data.detail;
+    }
+  }
+  return "An unexpected error occurred";
+}
 
 interface SegmentCardProps {
   segment: Segment;
@@ -57,8 +67,8 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
     try {
       await analyzeSegment.mutateAsync(segment.id);
       toast.success("Analysis complete");
-    } catch {
-      toast.error("Failed to analyze segment");
+    } catch (error) {
+      toast.error(getErrorMessage(error));
     }
   };
 
@@ -69,8 +79,8 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
         data: { voice: selectedVoice },
       });
       toast.success("TTS audio generated");
-    } catch {
-      toast.error("Failed to generate TTS");
+    } catch (error) {
+      toast.error(getErrorMessage(error));
     }
   };
 
