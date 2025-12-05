@@ -4,6 +4,7 @@ import { Toaster } from "sonner";
 import { Layout } from "./components/layout/Layout";
 import { ProjectEditorPage } from "./pages/ProjectEditorPage";
 import { ProjectListPage } from "./pages/ProjectListPage";
+import { SettingsPage } from "./pages/SettingsPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,6 +24,7 @@ function App() {
             <Route index element={<Navigate to="/projects" replace />} />
             <Route path="projects" element={<ProjectListPage />} />
             <Route path="projects/:projectId" element={<ProjectEditorPage />} />
+            <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Routes>
       </BrowserRouter>
