@@ -46,10 +46,11 @@ Video dubbing workflow app: upload video → extract audio → select segments v
 - Waveform region highlighting on segment card hover
 - Segment visibility toggle (eye icon)
 - SegmentCard with expandable details
-- AI analysis display (tone, emotion, pace)
+- AI analysis display with editable fields (auto-save)
 - Translation editor with save
 - TTS voice selector and generation
 - Audio players for segments and TTS results
+- Download TTS audio (individual + zip all)
 
 #### Docker (Phase 8)
 - Backend Dockerfile with Python 3.11 + FFmpeg + libmagic

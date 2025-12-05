@@ -1,4 +1,5 @@
 import {
+  ArrowDownTrayIcon,
   ChevronDownIcon,
   ChevronUpIcon,
   SpeakerWaveIcon,
@@ -436,10 +437,17 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
             {/* TTS result player */}
             {ttsUrl && (
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">
-                  Generated Audio
-                </h4>
-                <audio src={ttsUrl} controls className="w-full h-8" />
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Generated Audio</h4>
+                <div className="flex items-center gap-2">
+                  <audio src={ttsUrl} controls className="flex-1 h-8" />
+                  <a
+                    href={`${ttsUrl}?download=true`}
+                    className={cn(buttonStyles.base, buttonStyles.secondary, "p-1.5")}
+                    title="Download TTS audio"
+                  >
+                    <ArrowDownTrayIcon className="w-4 h-4" />
+                  </a>
+                </div>
               </div>
             )}
 
