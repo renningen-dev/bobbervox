@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     projects_dir: Path = Path("./projects")
 
     # Upload limits
-    max_upload_size_mb: int = 500
+    max_upload_size_mb: int = 2000
     allowed_video_extensions: list[str] = [".mp4", ".mov", ".avi", ".mkv", ".webm"]
 
     # CORS

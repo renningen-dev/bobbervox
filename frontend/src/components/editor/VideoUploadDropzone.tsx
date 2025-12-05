@@ -84,7 +84,7 @@ export function VideoUploadDropzone({ projectId }: VideoUploadDropzoneProps) {
                 : "Drag and drop a video file, or click to select"}
             </p>
             <p className="mt-2 text-xs text-gray-500 dark:text-gray-500">
-              MP4, MOV, AVI, MKV, or WebM up to 500MB
+              MP4, MOV, AVI, MKV, or WebM up to 2GB
             </p>
           </>
         )}
