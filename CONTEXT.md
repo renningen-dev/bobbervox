@@ -11,10 +11,11 @@ Video dubbing workflow app: upload video → extract audio → select segments v
 
 ## Current State
 
-**Phase 1-3 Complete** - Backend fully functional with AI integration.
+**Phase 1-5 Complete** - Backend fully functional. Frontend core + project management done.
 
 ### Working Features
 
+#### Backend (Phases 1-3)
 - Project CRUD: `POST/GET/DELETE /api/projects`
 - Video upload: `POST /api/projects/{id}/upload`
 - Audio extraction: `POST /api/projects/{id}/extract-audio`
@@ -27,9 +28,27 @@ Video dubbing workflow app: upload video → extract audio → select segments v
 - SQLite + async SQLAlchemy with Alembic migrations
 - Tests passing (47 tests), pre-commit hooks configured
 
+#### Frontend (Phases 4-5)
+- Vite + React 19 + TypeScript
+- Tailwind CSS v4 with @tailwindcss/postcss
+- TanStack Query for server state
+- Zustand for client state (editorStore)
+- React Router DOM for routing
+- Headless UI for accessible dialogs
+- React Hook Form + Zod for form validation
+- React Dropzone for video uploads
+- Vitest + MSW for testing (5 tests passing)
+- Project list/create/delete UI
+- Video upload dropzone
+- Audio extraction trigger
+
+### In Progress
+
+- Phase 6: Waveform Editor (useWaveSurfer hook, WaveformPlayer, WaveformControls)
+
 ### Not Yet Implemented
 
-- Phase 4-7: Frontend (React + WaveSurfer.js)
+- Phase 7: Segment Workflow (SegmentCard, TTS controls)
 - Phase 8: Docker
 
 ## Key Technical Decisions
@@ -70,11 +89,19 @@ Use `Optional[X]` not `X | None` - ruff configured to ignore UP007/UP045.
 ## Dev Workflow
 
 ```bash
+# Backend
 cd backend
 make test      # Run tests
 make format    # Ruff lint + format
 make run       # uvicorn dev server
 make migrate   # Apply migrations
+
+# Frontend
+cd frontend
+make dev       # Vite dev server
+make build     # Production build
+make test-run  # Run tests once
+make lint      # ESLint
 ```
 
 ## User Preferences
@@ -105,15 +132,13 @@ make migrate   # Apply migrations
 
 4. **File uploads**: Use `file.file` (SpooledTemporaryFile) not `file` directly.
 
-## Next Steps (Phase 4 - Frontend)
+## Next Steps (Phase 6-7 - Waveform & Segments)
 
-1. Initialize Vite + React + TypeScript project in `frontend/`
-2. Configure Tailwind CSS and Headless UI
-3. Set up TanStack Query and Zustand stores
-4. Create routing structure with React Router
-5. Implement API client with fetch
-
-Key libraries: react, react-router-dom, zustand, @tanstack/react-query, @headlessui/react, tailwindcss, wavesurfer.js
+1. Build WaveformPlayer and WaveformControls components
+2. Integrate regions with segment CRUD
+3. Create SegmentCard with analysis display
+4. Implement TTS controls and result player
+5. Add translation editor with auto-save
 
 ## API Design Reference
 

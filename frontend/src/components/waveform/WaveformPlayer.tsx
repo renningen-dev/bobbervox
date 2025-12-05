@@ -1,0 +1,172 @@
+import { useCallback, useRef, useState } from "react";
+import { toast } from "sonner";
+import { useCreateSegment } from "../../features/segments/api";
+import { useWaveSurfer } from "../../hooks/useWaveSurfer";
+import { cardStyles, cn } from "../../lib/styles";
+import { useEditorStore } from "../../stores/editorStore";
+import type { Segment } from "../../types";
+import { WaveformControls } from "./WaveformControls";
+import type { Region } from "wavesurfer.js/dist/plugins/regions.js";
+
+interface WaveformPlayerProps {
+  projectId: string;
+  audioUrl: string;
+  segments: Segment[];
+}
+
+export function WaveformPlayer({ projectId, audioUrl, segments }: WaveformPlayerProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [zoomLevel, setZoomLevel] = useState(50);
+
+  const setCurrentTime = useEditorStore((s) => s.setCurrentTime);
+  const setIsPlaying = useEditorStore((s) => s.setIsPlaying);
+  const setPendingRegion = useEditorStore((s) => s.setPendingRegion);
+  const setSelectedRegionId = useEditorStore((s) => s.setSelectedRegionId);
+
+  const createSegment = useCreateSegment();
+
+  const handleReady = useCallback(() => {
+    // Nothing special needed on ready
+  }, []);
+
+  const handleTimeUpdate = useCallback((time: number) => {
+    setCurrentTime(time);
+  }, [setCurrentTime]);
+
+  const handleRegionCreated = useCallback((region: Region) => {
+    // Only track pending regions (new ones created by user)
+    if (!region.id.startsWith("segment-")) {
+      setPendingRegion({
+        id: region.id,
+        start: region.start,
+        end: region.end,
+      });
+    }
+  }, [setPendingRegion]);
+
+  const handleRegionUpdated = useCallback((region: Region) => {
+    // Update pending region if it's the one being edited
+    if (!region.id.startsWith("segment-")) {
+      setPendingRegion({
+        id: region.id,
+        start: region.start,
+        end: region.end,
+      });
+    }
+  }, [setPendingRegion]);
+
+  const handleRegionClicked = useCallback((region: Region) => {
+    if (region.id.startsWith("segment-")) {
+      const segmentId = region.id.replace("segment-", "");
+      setSelectedRegionId(segmentId);
+    }
+  }, [setSelectedRegionId]);
+
+  const wavesurfer = useWaveSurfer({
+    container: containerRef.current,
+    audioUrl,
+    onReady: handleReady,
+    onTimeUpdate: handleTimeUpdate,
+    onRegionCreated: handleRegionCreated,
+    onRegionUpdated: handleRegionUpdated,
+    onRegionClicked: handleRegionClicked,
+  });
+
+  // Sync play state with store
+  const handlePlayStateChange = useCallback((playing: boolean) => {
+    setIsPlaying(playing);
+  }, [setIsPlaying]);
+
+  // Watch for play state changes
+  if (wavesurfer.isPlaying !== useEditorStore.getState().isPlaying) {
+    handlePlayStateChange(wavesurfer.isPlaying);
+  }
+
+  const handleZoom = useCallback((level: number) => {
+    setZoomLevel(level);
+    wavesurfer.zoom(level);
+  }, [wavesurfer]);
+
+  const handleCreateSegment = useCallback(async () => {
+    const pendingRegion = useEditorStore.getState().pendingRegion;
+    if (!pendingRegion) {
+      toast.error("No region selected. Drag on the waveform to select a region.");
+      return;
+    }
+
+    try {
+      await createSegment.mutateAsync({
+        projectId,
+        data: {
+          start_time: pendingRegion.start,
+          end_time: pendingRegion.end,
+        },
+      });
+
+      // Clear the pending region after successful creation
+      setPendingRegion(null);
+      wavesurfer.removeRegion(pendingRegion.id);
+      toast.success("Segment created");
+    } catch {
+      toast.error("Failed to create segment");
+    }
+  }, [projectId, createSegment, setPendingRegion, wavesurfer]);
+
+  // Format time as MM:SS.mmm
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toFixed(2).padStart(5, "0")}`;
+  };
+
+  return (
+    <div className={cn(cardStyles.base, "p-4")}>
+      {/* Waveform container */}
+      <div
+        ref={containerRef}
+        className="w-full min-h-[128px] bg-gray-50 rounded"
+      />
+
+      {/* Time display */}
+      <div className="mt-2 flex justify-between text-sm text-gray-500 font-mono">
+        <span>{formatTime(wavesurfer.currentTime)}</span>
+        <span>{formatTime(wavesurfer.duration)}</span>
+      </div>
+
+      {/* Controls */}
+      <WaveformControls
+        isPlaying={wavesurfer.isPlaying}
+        isReady={wavesurfer.isReady}
+        zoomLevel={zoomLevel}
+        hasPendingRegion={useEditorStore.getState().pendingRegion !== null}
+        isCreatingSegment={createSegment.isPending}
+        onPlayPause={wavesurfer.playPause}
+        onZoom={handleZoom}
+        onCreateSegment={handleCreateSegment}
+      />
+
+      {/* Segments legend */}
+      {segments.length > 0 && (
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <h4 className="text-sm font-medium text-gray-700 mb-2">
+            Segments ({segments.length})
+          </h4>
+          <div className="flex flex-wrap gap-2">
+            {segments.map((segment) => (
+              <button
+                key={segment.id}
+                onClick={() => {
+                  setSelectedRegionId(segment.id);
+                  wavesurfer.seekTo(segment.start_time);
+                }}
+                className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200"
+              >
+                {formatTime(segment.start_time)} - {formatTime(segment.end_time)}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
