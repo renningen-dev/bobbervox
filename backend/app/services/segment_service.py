@@ -159,6 +159,8 @@ class SegmentService:
                 status=SegmentStatus.ERROR,
                 error_message=str(e),
             )
+            # Commit error status before raising so it persists
+            await self.repo.commit()
             raise
 
         return segment

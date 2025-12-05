@@ -122,7 +122,7 @@ export function WaveformControls({
         title="Create segment from selection"
       >
         <PlusIcon className="w-4 h-4 mr-1" />
-        {isCreatingSegment ? "Creating..." : "Create Segment"}
+        Create Segment
       </button>
     </div>
   );

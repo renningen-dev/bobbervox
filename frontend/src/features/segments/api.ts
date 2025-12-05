@@ -97,23 +97,19 @@ export function useExtractSegment() {
   });
 }
 
-export function useAnalyzeSegment() {
+export function useAnalyzeSegment(projectId?: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (segmentId: string) =>
       api.post<Segment>(`/segments/${segmentId}/analyze`),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({
-        queryKey: segmentKeys.detail(data.id),
-      });
-      queryClient.invalidateQueries({
-        queryKey: segmentKeys.list(data.project_id),
-      });
-      // Also invalidate project details since it includes segments
-      queryClient.invalidateQueries({
-        queryKey: projectKeys.detail(data.project_id),
-      });
+    onSettled: () => {
+      // Always refetch project data after analyze completes (success or error)
+      if (projectId) {
+        queryClient.refetchQueries({
+          queryKey: projectKeys.detail(projectId),
+        });
+      }
     },
   });
 }

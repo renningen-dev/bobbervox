@@ -48,3 +48,7 @@ class SegmentRepository:
         await self.session.flush()
         await self.session.refresh(segment)
         return segment
+
+    async def commit(self) -> None:
+        """Explicitly commit the current transaction."""
+        await self.session.commit()

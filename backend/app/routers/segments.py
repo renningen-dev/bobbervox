@@ -140,7 +140,11 @@ async def analyze_segment(
     segment_id: str,
     segment_service: Annotated[SegmentService, Depends(get_segment_service)],
 ) -> SegmentRead:
-    """Analyze segment audio using OpenAI gpt-4o-audio-preview."""
+    """Analyze segment audio using OpenAI gpt-4o-audio-preview.
+
+    Returns segment with status 'analyzed' on success or 'error' on failure.
+    Does not raise exceptions - always returns the segment.
+    """
     segment = await segment_service.get_by_id(segment_id)
     segment = await segment_service.analyze_segment(segment)
     return SegmentRead.model_validate(segment)

@@ -21,7 +21,7 @@ interface WaveformPlayerProps {
 export function WaveformPlayer({ projectId, audioUrl, segments = [] }: WaveformPlayerProps) {
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
   const [zoomLevel, setZoomLevel] = useState(50);
-  const [showAllSegments, setShowAllSegments] = useState(false);
+  const [showAllSegments, setShowAllSegments] = useState(true);
   const pendingRegionRef = useRef<Region | null>(null);
 
   const setCurrentTime = useEditorStore((s) => s.setCurrentTime);

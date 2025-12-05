@@ -24,11 +24,12 @@ export function useProjects() {
   });
 }
 
-export function useProject(id: string) {
+export function useProject(id: string, options?: { refetchInterval?: number | false }) {
   return useQuery({
     queryKey: projectKeys.detail(id),
     queryFn: () => api.get<ProjectWithSegments>(`/projects/${id}`),
     enabled: !!id,
+    refetchInterval: options?.refetchInterval,
   });
 }
 

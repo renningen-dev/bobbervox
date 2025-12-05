@@ -1,8 +1,11 @@
 import {
+  Disclosure,
+  DisclosureButton,
+  DisclosurePanel,
+} from "@headlessui/react";
+import {
   ArrowDownTrayIcon,
   ChevronDownIcon,
-  ChevronUpIcon,
-  SpeakerWaveIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { useEffect, useRef, useState } from "react";
@@ -18,9 +21,9 @@ import { ApiError, getFileUrl } from "../../lib/api-client";
 import { buttonStyles, cardStyles, cn } from "../../lib/styles";
 import { useEditorStore } from "../../stores/editorStore";
 import type { Segment, TTSVoice } from "../../types";
-import { TTS_VOICES } from "../../types";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
 import { Spinner } from "../ui/Spinner";
+import { VoiceListbox } from "../ui/VoiceListbox";
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof ApiError && error.data) {
@@ -55,7 +58,6 @@ const statusColors: Record<string, string> = {
 };
 
 export function SegmentCard({ segment, projectId }: SegmentCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedVoice, setSelectedVoice] = useState<TTSVoice>("alloy");
   // Track local edits to translation, null means no local edits (use segment value)
@@ -63,7 +65,7 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
   const translationText = localTranslation ?? segment.translated_text ?? "";
   const hasLocalEdits = localTranslation !== null && localTranslation !== (segment.translated_text ?? "");
 
-  const analyzeSegment = useAnalyzeSegment();
+  const analyzeSegment = useAnalyzeSegment(projectId);
   const generateTTS = useGenerateTTS();
   const updateTranslation = useUpdateTranslation();
   const updateAnalysis = useUpdateAnalysis();
@@ -101,15 +103,6 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
 
   const hasAnalysisEdits = localAnalysis !== null;
 
-  const handleAnalyze = async () => {
-    try {
-      await analyzeSegment.mutateAsync(segment.id);
-      toast.success("Analysis complete");
-    } catch (error) {
-      toast.error(getErrorMessage(error));
-    }
-  };
-
   const handleGenerateTTS = async () => {
     try {
       await generateTTS.mutateAsync({
@@ -137,6 +130,23 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
 
   // Debounced auto-save for analysis
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isAnalyzingLocal, setIsAnalyzingLocal] = useState(false);
+
+  // Auto-trigger analysis when segment is extracted
+  useEffect(() => {
+    if (segment.status === "extracted" && !isAnalyzingLocal) {
+      setIsAnalyzingLocal(true);
+      analyzeSegment.mutate(segment.id);
+    }
+  }, [segment.status, segment.id, analyzeSegment, isAnalyzingLocal]);
+
+  // Clear analyzing state when we have results or error
+  useEffect(() => {
+    if (segment.analysis_json || segment.status === "analyzed" || segment.status === "error" || segment.status === "completed") {
+      setIsAnalyzingLocal(false);
+    }
+  }, [segment.analysis_json, segment.status]);
+
 
   // Auto-save with debounce when analysis changes
   useEffect(() => {
@@ -207,56 +217,66 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
 
   return (
     <>
-      <div
+      <Disclosure
+        as="div"
         className={cn(cardStyles.base, "overflow-hidden")}
         onMouseEnter={() => setHoveredSegmentId(segment.id)}
         onMouseLeave={() => setHoveredSegmentId(null)}
       >
-        {/* Header */}
-        <div
-          className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50"
-          onClick={() => setIsExpanded(!isExpanded)}
-        >
-          <div className="flex items-center gap-3">
-            <button className="text-gray-400">
-              {isExpanded ? (
-                <ChevronUpIcon className="w-5 h-5" />
-              ) : (
-                <ChevronDownIcon className="w-5 h-5" />
-              )}
-            </button>
-            <div>
-              <span className="font-mono text-sm text-gray-600">
-                {formatTime(segment.start_time)} - {formatTime(segment.end_time)}
-              </span>
-            </div>
-          </div>
+        {({ open }) => (
+          <>
+            {/* Header */}
+            <DisclosureButton className="w-full p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 text-left">
+              <div className="flex items-center gap-3">
+                <ChevronDownIcon
+                  className={cn(
+                    "w-5 h-5 text-gray-400 transition-transform duration-200",
+                    open && "rotate-180"
+                  )}
+                />
+                <div>
+                  <span className="font-mono text-sm text-gray-600">
+                    {formatTime(segment.start_time)} - {formatTime(segment.end_time)}
+                  </span>
+                </div>
+              </div>
 
-          <div className="flex items-center gap-2">
-            <span
-              className={cn(
-                "px-2 py-0.5 rounded text-xs font-medium",
-                statusColors[segment.status] || statusColors.created
-              )}
-            >
-              {segment.status.replace("_", " ")}
-            </span>
+              <div className="flex items-center gap-2">
+                {(isAnalyzingLocal || (segment.status === "analyzing" && !segment.analysis_json)) ? (
+                  <span className="flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">
+                    <Spinner size="xs" />
+                    Analyzing...
+                  </span>
+                ) : (segment.status === "generating_tts" || generateTTS.isPending) ? (
+                  <span className="flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">
+                    <Spinner size="xs" />
+                    Generating TTS...
+                  </span>
+                ) : (
+                  <span
+                    className={cn(
+                      "px-2 py-0.5 rounded text-xs font-medium",
+                      statusColors[segment.status] || statusColors.created
+                    )}
+                  >
+                    {segment.status.replace("_", " ")}
+                  </span>
+                )}
 
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsDeleteOpen(true);
-              }}
-              className="text-gray-400 hover:text-red-500 p-1"
-            >
-              <TrashIcon className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsDeleteOpen(true);
+                  }}
+                  className="text-gray-400 hover:text-red-500 p-1"
+                >
+                  <TrashIcon className="w-4 h-4" />
+                </button>
+              </div>
+            </DisclosureButton>
 
-        {/* Expanded content */}
-        {isExpanded && (
-          <div className="border-t border-gray-100 p-4 space-y-4">
+            {/* Expanded content */}
+            <DisclosurePanel className="border-t border-gray-100 p-4 space-y-4">
             {/* Segment audio player */}
             {audioUrl && (
               <div>
@@ -267,16 +287,21 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
               </div>
             )}
 
-            {/* Actions based on status */}
-            {segment.status === "extracted" && (
-              <button
-                onClick={handleAnalyze}
-                disabled={isProcessing}
-                className={cn(buttonStyles.base, buttonStyles.primary, "w-full")}
-              >
-                <SpeakerWaveIcon className="w-4 h-4 mr-2" />
-                {analyzeSegment.isPending ? "Analyzing..." : "Analyze with AI"}
-              </button>
+            {/* Error display with retry */}
+            {segment.status === "error" && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                <p className="text-sm font-medium text-red-700 mb-1">Analysis Failed</p>
+                {segment.error_message && (
+                  <p className="text-sm text-red-600 mb-3">{segment.error_message}</p>
+                )}
+                <button
+                  onClick={() => analyzeSegment.mutate(segment.id)}
+                  disabled={analyzeSegment.isPending}
+                  className={cn(buttonStyles.base, buttonStyles.primary, "text-xs")}
+                >
+                  {analyzeSegment.isPending ? "Retrying..." : "Retry Analysis"}
+                </button>
+              </div>
             )}
 
             {/* Analysis display */}
@@ -412,17 +437,13 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
                   Text-to-Speech
                 </h4>
                 <div className="flex items-center gap-2">
-                  <select
-                    value={selectedVoice}
-                    onChange={(e) => setSelectedVoice(e.target.value as TTSVoice)}
-                    className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    {TTS_VOICES.map((voice) => (
-                      <option key={voice} value={voice}>
-                        {voice.charAt(0).toUpperCase() + voice.slice(1)}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex-1">
+                    <VoiceListbox
+                      value={selectedVoice}
+                      onChange={setSelectedVoice}
+                      disabled={isProcessing}
+                    />
+                  </div>
                   <button
                     onClick={handleGenerateTTS}
                     disabled={isProcessing || !translationText}
@@ -451,15 +472,10 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
               </div>
             )}
 
-            {/* Error message */}
-            {segment.error_message && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                <p className="text-sm text-red-600">{segment.error_message}</p>
-              </div>
-            )}
-          </div>
+            </DisclosurePanel>
+          </>
         )}
-      </div>
+      </Disclosure>
 
       <ConfirmDialog
         isOpen={isDeleteOpen}
