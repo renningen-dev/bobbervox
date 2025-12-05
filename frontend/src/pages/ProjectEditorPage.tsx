@@ -8,7 +8,7 @@ import { LanguageListbox } from "../components/ui/LanguageListbox";
 import { Spinner } from "../components/ui/Spinner";
 import { WaveformPlayer } from "../components/waveform/WaveformPlayer";
 import { useExtractAudio, useProject, useUpdateProject } from "../features/projects/api";
-import { getFileUrl } from "../lib/api-client";
+import { fetchAuthenticatedAudio } from "../lib/api-client";
 import { buttonStyles, cn } from "../lib/styles";
 import { useEditorStore } from "../stores/editorStore";
 import { SOURCE_LANGUAGES, SUPPORTED_LANGUAGES, TARGET_LANGUAGES } from "../types";
@@ -19,6 +19,10 @@ export function ProjectEditorPage() {
   const setCurrentProjectId = useEditorStore((s) => s.setCurrentProjectId);
   const extractAudio = useExtractAudio();
   const hasTriggeredExtractionRef = useRef(false);
+  const [audioBlobUrl, setAudioBlobUrl] = useState<string | null>(null);
+
+  // Derive loading state: audio should be loaded but blob URL not yet available
+  const isLoadingAudio = Boolean(project?.extracted_audio) && !audioBlobUrl;
 
   useEffect(() => {
     setCurrentProjectId(projectId || null);
@@ -62,6 +66,39 @@ export function ProjectEditorPage() {
     }
   }, [project?.extracted_audio]);
 
+  // Fetch audio with authentication
+  useEffect(() => {
+    if (!project?.id || !project?.extracted_audio) {
+      return;
+    }
+
+    let cancelled = false;
+    let blobUrlToRevoke: string | null = null;
+
+    fetchAuthenticatedAudio(project.id, "audio", "full_audio.wav")
+      .then((blobUrl) => {
+        if (!cancelled) {
+          blobUrlToRevoke = blobUrl;
+          setAudioBlobUrl(blobUrl);
+        } else {
+          URL.revokeObjectURL(blobUrl);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          toast.error("Failed to load audio");
+        }
+      });
+
+    return () => {
+      cancelled = true;
+      if (blobUrlToRevoke) {
+        URL.revokeObjectURL(blobUrlToRevoke);
+      }
+      setAudioBlobUrl(null);
+    };
+  }, [project?.id, project?.extracted_audio]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -97,7 +134,7 @@ export function ProjectEditorPage() {
 
       {!project.source_video ? (
         <VideoUploadDropzone projectId={project.id} />
-      ) : !project.extracted_audio ? (
+      ) : !project.extracted_audio || isLoadingAudio || !audioBlobUrl ? (
         <div className={cn(
           "p-8 text-center rounded-xl",
           "bg-white/50 dark:bg-white/5 backdrop-blur-xl",
@@ -106,14 +143,16 @@ export function ProjectEditorPage() {
         )}>
           <div className="flex flex-col items-center gap-3">
             <Spinner size="lg" />
-            <p className="text-gray-600 dark:text-gray-400">Extracting audio from video...</p>
+            <p className="text-gray-600 dark:text-gray-400">
+              {!project.extracted_audio ? "Extracting audio from video..." : "Loading audio..."}
+            </p>
           </div>
         </div>
       ) : (
         <div className="space-y-6">
           <WaveformPlayer
             projectId={project.id}
-            audioUrl={getFileUrl(project.id, "audio", "full_audio.wav")}
+            audioUrl={audioBlobUrl}
             segments={project.segments}
           />
           <SegmentList segments={project.segments} projectId={project.id} />

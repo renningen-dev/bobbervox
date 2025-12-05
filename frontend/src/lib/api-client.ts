@@ -119,6 +119,20 @@ export function getFileUrl(projectId: string, type: "audio" | "segments" | "outp
   return `${API_BASE_URL}/files/${projectId}/${type}/${filename}`;
 }
 
+export async function fetchAuthenticatedAudio(projectId: string, type: "audio" | "segments" | "output", filename: string): Promise<string> {
+  const url = getFileUrl(projectId, type, filename);
+  const response = await fetch(url, {
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new ApiError(response.status, response.statusText);
+  }
+
+  const blob = await response.blob();
+  return URL.createObjectURL(blob);
+}
+
 export function getApiBaseUrl(): string {
   return API_BASE_URL;
 }

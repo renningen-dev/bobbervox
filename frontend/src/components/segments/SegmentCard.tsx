@@ -17,7 +17,7 @@ import {
   useUpdateAnalysis,
   useUpdateTranslation,
 } from "../../features/segments/api";
-import { ApiError, getFileUrl } from "../../lib/api-client";
+import { ApiError, fetchAuthenticatedAudio } from "../../lib/api-client";
 import { buttonStyles, cn } from "../../lib/styles";
 import { useEditorStore } from "../../stores/editorStore";
 import type { Segment, TTSVoice } from "../../types";
@@ -66,12 +66,80 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
   const translationText = localTranslation ?? segment.translated_text ?? "";
   const hasLocalEdits = localTranslation !== null && localTranslation !== (segment.translated_text ?? "");
 
+  // Authenticated audio blob URLs
+  const [audioBlobUrl, setAudioBlobUrl] = useState<string | null>(null);
+  const [ttsBlobUrl, setTtsBlobUrl] = useState<string | null>(null);
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+  const [isLoadingTts, setIsLoadingTts] = useState(false);
+
   const analyzeSegment = useAnalyzeSegment(projectId);
   const generateTTS = useGenerateTTS();
   const updateTranslation = useUpdateTranslation();
   const updateAnalysis = useUpdateAnalysis();
   const deleteSegment = useDeleteSegment();
   const setHoveredSegmentId = useEditorStore((s) => s.setHoveredSegmentId);
+
+  // Fetch segment audio with authentication
+  useEffect(() => {
+    if (!segment.audio_file) {
+      setAudioBlobUrl(null);
+      return;
+    }
+
+    let cancelled = false;
+    setIsLoadingAudio(true);
+
+    const filename = segment.audio_file.split("/").pop() || segment.audio_file;
+    fetchAuthenticatedAudio(projectId, "segments", filename)
+      .then((blobUrl) => {
+        if (!cancelled) {
+          setAudioBlobUrl(blobUrl);
+        }
+      })
+      .catch(() => {
+        // Silently fail - audio just won't load
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoadingAudio(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [segment.audio_file, projectId]);
+
+  // Fetch TTS audio with authentication
+  useEffect(() => {
+    if (!segment.tts_result_file) {
+      setTtsBlobUrl(null);
+      return;
+    }
+
+    let cancelled = false;
+    setIsLoadingTts(true);
+
+    const filename = segment.tts_result_file.split("/").pop() || segment.tts_result_file;
+    fetchAuthenticatedAudio(projectId, "output", filename)
+      .then((blobUrl) => {
+        if (!cancelled) {
+          setTtsBlobUrl(blobUrl);
+        }
+      })
+      .catch(() => {
+        // Silently fail - audio just won't load
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoadingTts(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [segment.tts_result_file, projectId]);
 
   // Local state for editable analysis fields
   const [localAnalysis, setLocalAnalysis] = useState<{
@@ -220,14 +288,6 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
     setIsDeleteOpen(false);
   };
 
-  const audioUrl = segment.audio_file
-    ? getFileUrl(projectId, "segments", segment.audio_file.split("/").pop() || segment.audio_file)
-    : null;
-
-  const ttsUrl = segment.tts_result_file
-    ? getFileUrl(projectId, "output", segment.tts_result_file.split("/").pop() || segment.tts_result_file)
-    : null;
-
   const isProcessing =
     isAnalyzingLocal ||
     generateTTS.isPending;
@@ -302,12 +362,19 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
             className="border-t border-black/5 dark:border-white/5 p-4 space-y-4 origin-top transition-all duration-200 ease-out data-[closed]:opacity-0 data-[closed]:-translate-y-2"
           >
             {/* Segment audio player */}
-            {audioUrl && (
+            {segment.audio_file && (
               <div>
                 <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Segment Audio
                 </h4>
-                <AudioPlayer src={audioUrl} />
+                {isLoadingAudio ? (
+                  <div className="flex items-center gap-2 py-2">
+                    <Spinner size="sm" />
+                    <span className="text-sm text-gray-500">Loading audio...</span>
+                  </div>
+                ) : audioBlobUrl ? (
+                  <AudioPlayer src={audioBlobUrl} />
+                ) : null}
               </div>
             )}
 
@@ -480,19 +547,27 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
             )}
 
             {/* TTS result player */}
-            {ttsUrl && (
+            {segment.tts_result_file && (
               <div>
                 <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Generated Audio</h4>
-                <div className="flex items-center gap-2">
-                  <AudioPlayer src={ttsUrl} className="flex-1" />
-                  <a
-                    href={`${ttsUrl}?download=true`}
-                    className={cn(buttonStyles.base, buttonStyles.secondary, "p-1.5")}
-                    title="Download TTS audio"
-                  >
-                    <ArrowDownTrayIcon className="w-4 h-4" />
-                  </a>
-                </div>
+                {isLoadingTts ? (
+                  <div className="flex items-center gap-2 py-2">
+                    <Spinner size="sm" />
+                    <span className="text-sm text-gray-500">Loading audio...</span>
+                  </div>
+                ) : ttsBlobUrl ? (
+                  <div className="flex items-center gap-2">
+                    <AudioPlayer src={ttsBlobUrl} className="flex-1" />
+                    <a
+                      href={ttsBlobUrl}
+                      download={segment.tts_result_file.split("/").pop() || "tts_audio.mp3"}
+                      className={cn(buttonStyles.base, buttonStyles.secondary, "p-1.5")}
+                      title="Download TTS audio"
+                    >
+                      <ArrowDownTrayIcon className="w-4 h-4" />
+                    </a>
+                  </div>
+                ) : null}
               </div>
             )}
 
