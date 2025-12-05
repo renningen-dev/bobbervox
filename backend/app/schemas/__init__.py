@@ -6,6 +6,7 @@ from app.schemas.segment import (
     SegmentUpdateAnalysis,
     SegmentUpdateTranslation,
 )
+from app.schemas.settings import SettingsResponse, SettingsUpdate
 
 __all__ = [
     "ProjectCreate",
@@ -16,4 +17,6 @@ __all__ = [
     "SegmentRead",
     "SegmentUpdateAnalysis",
     "SegmentUpdateTranslation",
+    "SettingsResponse",
+    "SettingsUpdate",
 ]

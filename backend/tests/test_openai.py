@@ -4,15 +4,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from app.config import Settings
 from app.services.openai_service import TTS_VOICES, OpenAIService
 from app.utils.exceptions import ExternalAPIError, ProcessingError
 
 
 @pytest.fixture
 def openai_service(tmp_path: Path) -> OpenAIService:
-    settings = Settings(projects_dir=tmp_path, openai_api_key="test-key")
-    return OpenAIService(settings)
+    return OpenAIService(api_key="test-key")
 
 
 @pytest.fixture
@@ -25,15 +23,13 @@ def sample_audio(tmp_path: Path) -> Path:
 
 
 class TestOpenAIService:
-    def test_no_api_key_warning(self, tmp_path: Path):
-        settings = Settings(projects_dir=tmp_path, openai_api_key="")
-        service = OpenAIService(settings)
+    def test_no_api_key_warning(self):
+        service = OpenAIService(api_key="")
         # Should not raise, just log warning
         assert service._client is None
 
-    def test_client_raises_without_api_key(self, tmp_path: Path):
-        settings = Settings(projects_dir=tmp_path, openai_api_key="")
-        service = OpenAIService(settings)
+    def test_client_raises_without_api_key(self):
+        service = OpenAIService(api_key="")
         with pytest.raises(ProcessingError, match="OpenAI API key not configured"):
             _ = service.client
 

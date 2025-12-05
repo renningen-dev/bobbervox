@@ -8,7 +8,6 @@ from typing import Any, Optional
 
 from openai import AsyncOpenAI
 
-from app.config import Settings
 from app.utils.exceptions import ExternalAPIError, ProcessingError
 
 logger = logging.getLogger(__name__)
@@ -30,6 +29,7 @@ TTS_VOICES = [
     "verse",
 ]
 
+# Default prompts (used when initializing settings for the first time)
 AUDIO_ANALYSIS_SYSTEM_PROMPT = """You are an audio analysis assistant specialized in outdoor/rural environments.
 The audio is from a fishing video. Your task is to:
 
@@ -54,18 +54,25 @@ The "emphasis" and "pause_before" arrays should contain words from the translate
 class OpenAIService:
     """Service for OpenAI API interactions - audio analysis and TTS."""
 
-    def __init__(self, settings: Settings) -> None:
-        self.settings = settings
-        if not settings.openai_api_key:
+    def __init__(
+        self,
+        api_key: str,
+        system_prompt: str = AUDIO_ANALYSIS_SYSTEM_PROMPT,
+        user_prompt: str = AUDIO_ANALYSIS_USER_PROMPT,
+    ) -> None:
+        self.api_key = api_key
+        self.system_prompt = system_prompt
+        self.user_prompt = user_prompt
+        if not api_key:
             logger.warning("OpenAI API key not configured")
         self._client: Optional[AsyncOpenAI] = None
 
     @property
     def client(self) -> AsyncOpenAI:
         if self._client is None:
-            if not self.settings.openai_api_key:
+            if not self.api_key:
                 raise ProcessingError("OpenAI API key not configured")
-            self._client = AsyncOpenAI(api_key=self.settings.openai_api_key)
+            self._client = AsyncOpenAI(api_key=self.api_key)
         return self._client
 
     async def analyze_audio(self, audio_path: Path) -> dict[str, Any]:
@@ -94,7 +101,7 @@ class OpenAIService:
                 model="gpt-4o-audio-preview",
                 modalities=["text"],
                 messages=[
-                    {"role": "system", "content": AUDIO_ANALYSIS_SYSTEM_PROMPT},
+                    {"role": "system", "content": self.system_prompt},
                     {
                         "role": "user",
                         "content": [
@@ -105,7 +112,7 @@ class OpenAIService:
                                     "format": suffix.lstrip("."),
                                 },
                             },
-                            {"type": "text", "text": AUDIO_ANALYSIS_USER_PROMPT},
+                            {"type": "text", "text": self.user_prompt},
                         ],
                     },
                 ],

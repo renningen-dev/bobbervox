@@ -1,14 +1,18 @@
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useCreateProject } from "../../features/projects/api";
 import { buttonStyles, cn, inputStyles } from "../../lib/styles";
+import { SOURCE_LANGUAGES, TARGET_LANGUAGES } from "../../types";
+import { LanguageListbox } from "../ui/LanguageListbox";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required").max(255, "Name is too long"),
+  source_language: z.string().min(1, "Source language is required"),
+  target_language: z.string().min(1, "Target language is required"),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -26,10 +30,15 @@ export function CreateProjectDialog({ isOpen, onClose }: CreateProjectDialogProp
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "" },
+    defaultValues: {
+      name: "",
+      source_language: "uk",
+      target_language: "en",
+    },
   });
 
   const onSubmit = async (data: FormData) => {
@@ -59,7 +68,7 @@ export function CreateProjectDialog({ isOpen, onClose }: CreateProjectDialogProp
             Create New Project
           </DialogTitle>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="mt-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
             <div>
               <label
                 htmlFor="name"
@@ -78,6 +87,48 @@ export function CreateProjectDialog({ isOpen, onClose }: CreateProjectDialogProp
               {errors.name && (
                 <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name.message}</p>
               )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Source Language
+                </label>
+                <Controller
+                  name="source_language"
+                  control={control}
+                  render={({ field }) => (
+                    <LanguageListbox
+                      value={field.value}
+                      onChange={field.onChange}
+                      languages={SOURCE_LANGUAGES}
+                    />
+                  )}
+                />
+                {errors.source_language && (
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.source_language.message}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Target Language
+                </label>
+                <Controller
+                  name="target_language"
+                  control={control}
+                  render={({ field }) => (
+                    <LanguageListbox
+                      value={field.value}
+                      onChange={field.onChange}
+                      languages={TARGET_LANGUAGES}
+                    />
+                  )}
+                />
+                {errors.target_language && (
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.target_language.message}</p>
+                )}
+              </div>
             </div>
 
             <div className="mt-6 flex justify-end gap-3">

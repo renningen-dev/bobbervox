@@ -8,6 +8,8 @@ export const mockProjects: ProjectListItem[] = [
   {
     id: "project-1",
     name: "Test Project 1",
+    source_language: "uk",
+    target_language: "en",
     created_at: "2024-01-01T00:00:00Z",
     source_video: null,
     extracted_audio: null,
@@ -16,6 +18,8 @@ export const mockProjects: ProjectListItem[] = [
   {
     id: "project-2",
     name: "Test Project 2",
+    source_language: "uk",
+    target_language: "en",
     created_at: "2024-01-02T00:00:00Z",
     source_video: "video.mp4",
     extracted_audio: "audio.wav",
@@ -26,6 +30,8 @@ export const mockProjects: ProjectListItem[] = [
 export const mockProject: Project = {
   id: "project-1",
   name: "Test Project 1",
+  source_language: "uk",
+  target_language: "en",
   created_at: "2024-01-01T00:00:00Z",
   source_video: null,
   extracted_audio: null,
@@ -48,10 +54,12 @@ export const handlers = [
 
   // Create project
   http.post(`${API_URL}/projects`, async ({ request }) => {
-    const body = (await request.json()) as { name: string };
+    const body = (await request.json()) as { name: string; source_language?: string; target_language?: string };
     const newProject: Project = {
       id: "new-project-id",
       name: body.name,
+      source_language: body.source_language || "uk",
+      target_language: body.target_language || "en",
       created_at: new Date().toISOString(),
       source_video: null,
       extracted_audio: null,

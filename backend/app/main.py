@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import get_settings
 from app.database import create_tables
 from app.routers import files, projects, segments
+from app.routers import settings as settings_router
 
 # Configure logging
 logging.basicConfig(
@@ -45,6 +46,7 @@ def create_app() -> FastAPI:
     app.include_router(projects.router, prefix="/api")
     app.include_router(segments.router, prefix="/api")
     app.include_router(files.router, prefix="/api")
+    app.include_router(settings_router.router, prefix="/api")
 
     return app
 

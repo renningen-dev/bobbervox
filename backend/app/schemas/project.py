@@ -11,6 +11,14 @@ if TYPE_CHECKING:
 
 class ProjectCreate(BaseModel):
     name: str
+    source_language: str = "uk"
+    target_language: str = "en"
+
+
+class ProjectUpdate(BaseModel):
+    name: Optional[str] = None
+    source_language: Optional[str] = None
+    target_language: Optional[str] = None
 
 
 class ProjectRead(BaseModel):
@@ -18,6 +26,8 @@ class ProjectRead(BaseModel):
 
     id: str
     name: str
+    source_language: str
+    target_language: str
     created_at: datetime
     updated_at: Optional[datetime]
     source_video: Optional[str]
@@ -29,6 +39,8 @@ class ProjectList(BaseModel):
 
     id: str
     name: str
+    source_language: str
+    target_language: str
     created_at: datetime
     source_video: Optional[str]
     extracted_audio: Optional[str]

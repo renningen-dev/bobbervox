@@ -16,6 +16,8 @@ class Project(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "projects"
 
     name: Mapped[str] = mapped_column(String(255), nullable=False)
+    source_language: Mapped[str] = mapped_column(String(10), nullable=False, default="uk")
+    target_language: Mapped[str] = mapped_column(String(10), nullable=False, default="en")
     source_video: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     extracted_audio: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
 

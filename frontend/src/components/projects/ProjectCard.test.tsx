@@ -6,6 +6,8 @@ import type { ProjectListItem } from "../../types";
 const mockProject: ProjectListItem = {
   id: "test-id",
   name: "Test Project",
+  source_language: "uk",
+  target_language: "en",
   created_at: "2024-01-15T00:00:00Z",
   source_video: null,
   extracted_audio: null,

@@ -5,6 +5,7 @@ import type {
   Project,
   ProjectListItem,
   ProjectWithSegments,
+  UpdateProjectRequest,
 } from "../../types";
 
 // Query keys
@@ -52,6 +53,21 @@ export function useDeleteProject() {
   return useMutation({
     mutationFn: (id: string) => api.delete(`/projects/${id}`),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+    },
+  });
+}
+
+export function useUpdateProject() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateProjectRequest }) =>
+      api.patch<Project>(`/projects/${id}`, data),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: projectKeys.detail(data.id),
+      });
       queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
     },
   });

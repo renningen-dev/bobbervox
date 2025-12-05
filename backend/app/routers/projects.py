@@ -7,7 +7,7 @@ from app.config import Settings, get_settings
 from app.database import get_async_session
 from app.repositories.project_repo import ProjectRepository
 from app.schemas import ProjectCreate, ProjectList, ProjectRead
-from app.schemas.project import ProjectReadWithSegments
+from app.schemas.project import ProjectReadWithSegments, ProjectUpdate
 from app.services.ffmpeg_service import FFmpegService
 from app.services.file_service import FileService
 from app.services.project_service import ProjectService
@@ -39,7 +39,11 @@ async def create_project(
     data: ProjectCreate,
     service: Annotated[ProjectService, Depends(get_project_service)],
 ) -> ProjectRead:
-    project = await service.create(data.name)
+    project = await service.create(
+        name=data.name,
+        source_language=data.source_language,
+        target_language=data.target_language,
+    )
     return ProjectRead.model_validate(project)
 
 
@@ -52,6 +56,8 @@ async def list_projects(
         ProjectList(
             id=project.id,
             name=project.name,
+            source_language=project.source_language,
+            target_language=project.target_language,
             created_at=project.created_at,
             source_video=project.source_video,
             extracted_audio=project.extracted_audio,
@@ -68,6 +74,21 @@ async def get_project(
 ) -> ProjectReadWithSegments:
     project = await service.get_by_id_with_segments(project_id)
     return ProjectReadWithSegments.model_validate(project)
+
+
+@router.patch("/{project_id}", response_model=ProjectRead)
+async def update_project(
+    project_id: str,
+    data: ProjectUpdate,
+    service: Annotated[ProjectService, Depends(get_project_service)],
+) -> ProjectRead:
+    project = await service.update(
+        project_id=project_id,
+        name=data.name,
+        source_language=data.source_language,
+        target_language=data.target_language,
+    )
+    return ProjectRead.model_validate(project)
 
 
 @router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)

@@ -130,9 +130,14 @@ class SegmentService:
     def _get_output_dir(self, project_id: str) -> Path:
         return self.settings.projects_dir / project_id / "output"
 
-    async def analyze_segment(self, segment: Segment) -> Segment:
+    async def analyze_segment(
+        self,
+        segment: Segment,
+        openai: Optional[OpenAIService] = None,
+    ) -> Segment:
         """Analyze segment audio using OpenAI."""
-        if self.openai is None:
+        openai_service = openai or self.openai
+        if openai_service is None:
             raise ProcessingError("OpenAI service not configured")
 
         if not segment.audio_file:
@@ -144,7 +149,7 @@ class SegmentService:
         segment = await self.repo.update(segment, status=SegmentStatus.ANALYZING)
 
         try:
-            analysis = await self.openai.analyze_audio(audio_path)
+            analysis = await openai_service.analyze_audio(audio_path)
 
             segment = await self.repo.update(
                 segment,
@@ -169,9 +174,11 @@ class SegmentService:
         self,
         segment: Segment,
         voice: str = "alloy",
+        openai: Optional[OpenAIService] = None,
     ) -> Segment:
         """Generate TTS audio for segment."""
-        if self.openai is None:
+        openai_service = openai or self.openai
+        if openai_service is None:
             raise ProcessingError("OpenAI service not configured")
 
         if not segment.translated_text:
@@ -191,7 +198,7 @@ class SegmentService:
         )
 
         try:
-            await self.openai.generate_tts(
+            await openai_service.generate_tts(
                 text=segment.translated_text,
                 voice=voice,
                 output_path=output_path,

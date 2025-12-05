@@ -13,8 +13,17 @@ class ProjectRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def create(self, name: str) -> Project:
-        project = Project(name=name)
+    async def create(
+        self,
+        name: str,
+        source_language: str = "uk",
+        target_language: str = "en",
+    ) -> Project:
+        project = Project(
+            name=name,
+            source_language=source_language,
+            target_language=target_language,
+        )
         self.session.add(project)
         await self.session.flush()
         return project

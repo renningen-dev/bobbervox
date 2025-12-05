@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Settings, get_settings
 from app.database import get_async_session
+from app.prompts import build_system_prompt, get_user_prompt
 from app.repositories.project_repo import ProjectRepository
 from app.repositories.segment_repo import SegmentRepository
 from app.schemas.segment import (
@@ -18,6 +19,8 @@ from app.services.ffmpeg_service import FFmpegService
 from app.services.openai_service import OpenAIService
 from app.services.project_service import ProjectService
 from app.services.segment_service import SegmentService
+from app.services.settings_service import SettingsService
+from app.utils.exceptions import ProcessingError
 
 router = APIRouter(tags=["segments"])
 
@@ -29,14 +32,20 @@ def get_project_service(
     return ProjectService(repo)
 
 
+def get_settings_service(
+    session: Annotated[AsyncSession, Depends(get_async_session)],
+) -> SettingsService:
+    return SettingsService(session)
+
+
 def get_segment_service(
     session: Annotated[AsyncSession, Depends(get_async_session)],
     settings: Annotated[Settings, Depends(get_settings)],
 ) -> SegmentService:
     repo = SegmentRepository(session)
     ffmpeg = FFmpegService(settings)
-    openai = OpenAIService(settings)
-    return SegmentService(repo, ffmpeg, settings, openai)
+    # OpenAI service will be created per-request with project context
+    return SegmentService(repo, ffmpeg, settings, openai=None)
 
 
 @router.post(
@@ -138,6 +147,8 @@ async def update_analysis(
 @router.post("/segments/{segment_id}/analyze", response_model=SegmentRead)
 async def analyze_segment(
     segment_id: str,
+    project_service: Annotated[ProjectService, Depends(get_project_service)],
+    settings_service: Annotated[SettingsService, Depends(get_settings_service)],
     segment_service: Annotated[SegmentService, Depends(get_segment_service)],
 ) -> SegmentRead:
     """Analyze segment audio using OpenAI gpt-4o-audio-preview.
@@ -146,7 +157,31 @@ async def analyze_segment(
     Does not raise exceptions - always returns the segment.
     """
     segment = await segment_service.get_by_id(segment_id)
-    segment = await segment_service.analyze_segment(segment)
+
+    # Get project for language settings
+    project = await project_service.get_by_id(segment.project_id)
+
+    # Get app settings for context and API key
+    app_settings = await settings_service.get_settings()
+    if not app_settings.openai_api_key:
+        raise ProcessingError("OpenAI API key not configured in settings")
+
+    # Build prompts dynamically
+    system_prompt = build_system_prompt(
+        context=app_settings.context_description,
+        source_language=project.source_language,
+        target_language=project.target_language,
+    )
+    user_prompt = get_user_prompt()
+
+    # Create OpenAI service with project-specific prompts
+    openai_service = OpenAIService(
+        api_key=app_settings.openai_api_key,
+        system_prompt=system_prompt,
+        user_prompt=user_prompt,
+    )
+
+    segment = await segment_service.analyze_segment(segment, openai=openai_service)
     return SegmentRead.model_validate(segment)
 
 
@@ -154,9 +189,19 @@ async def analyze_segment(
 async def generate_tts(
     segment_id: str,
     data: TTSRequest,
+    settings_service: Annotated[SettingsService, Depends(get_settings_service)],
     segment_service: Annotated[SegmentService, Depends(get_segment_service)],
 ) -> SegmentRead:
     """Generate TTS audio for segment using OpenAI tts-1-hd."""
     segment = await segment_service.get_by_id(segment_id)
-    segment = await segment_service.generate_tts(segment, voice=data.voice)
+
+    # Get app settings for API key
+    app_settings = await settings_service.get_settings()
+    if not app_settings.openai_api_key:
+        raise ProcessingError("OpenAI API key not configured in settings")
+
+    # Create OpenAI service with API key
+    openai_service = OpenAIService(api_key=app_settings.openai_api_key)
+
+    segment = await segment_service.generate_tts(segment, voice=data.voice, openai=openai_service)
     return SegmentRead.model_validate(segment)
