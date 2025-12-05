@@ -177,10 +177,21 @@ export function WaveformPlayer({ projectId, audioUrl, segments = [] }: WaveformP
       "shadow-lg shadow-black/5 dark:shadow-none"
     )}>
       {/* Waveform container */}
-      <div
-        ref={setContainer}
-        className="w-full min-h-[128px] bg-black/5 dark:bg-black/20 rounded-lg"
-      />
+      <div className="relative">
+        <div
+          ref={setContainer}
+          className="w-full min-h-[128px] bg-black/5 dark:bg-black/20 rounded-lg"
+        />
+        {/* Loading spinner overlay */}
+        {!wavesurfer.isReady && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/5 dark:bg-black/20 rounded-lg">
+            <div className="flex flex-col items-center gap-3">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 dark:border-gray-600 border-t-indigo-500" />
+              <span className="text-sm text-gray-500 dark:text-gray-400">Loading waveform...</span>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Time display */}
       <div className="mt-2 flex justify-between text-sm text-gray-500 dark:text-gray-400 font-mono">
