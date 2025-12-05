@@ -10,6 +10,7 @@ services:
       - PROJECTS_DIR=/app/projects
       - CORS_ORIGINS=${CORS_ORIGINS:-["http://localhost","http://localhost:80"]}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - FIREBASE_PROJECT_ID=${VITE_FIREBASE_PROJECT_ID}
       - HOSTNAME=${HOSTNAME:-localhost}
     volumes:
       - backend_data:/app/data
