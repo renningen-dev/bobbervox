@@ -45,8 +45,8 @@ htmlcov/
 # Database
 *.db
 
-# Project files
-projects/
+# Backend project data files
+/backend/projects/
 
 # macOS
 .DS_Store
