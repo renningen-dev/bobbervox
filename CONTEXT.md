@@ -11,7 +11,7 @@ Video dubbing workflow app: upload video → extract audio → select segments v
 
 ## Current State
 
-**Phase 1-5 Complete** - Backend fully functional. Frontend core + project management done.
+**Phases 1-7 Complete** - Full application functional. Frontend and backend integration done.
 
 ### Working Features
 
@@ -28,7 +28,7 @@ Video dubbing workflow app: upload video → extract audio → select segments v
 - SQLite + async SQLAlchemy with Alembic migrations
 - Tests passing (47 tests), pre-commit hooks configured
 
-#### Frontend (Phases 4-5)
+#### Frontend (Phases 4-7)
 - Vite + React 19 + TypeScript
 - Tailwind CSS v4 with @tailwindcss/postcss
 - TanStack Query for server state
@@ -41,14 +41,16 @@ Video dubbing workflow app: upload video → extract audio → select segments v
 - Project list/create/delete UI
 - Video upload dropzone
 - Audio extraction trigger
-
-### In Progress
-
-- Phase 6: Waveform Editor (useWaveSurfer hook, WaveformPlayer, WaveformControls)
+- WaveSurfer.js waveform player with region selection
+- Segment creation from waveform regions
+- SegmentCard with expandable details
+- AI analysis display (tone, emotion, pace)
+- Translation editor with save
+- TTS voice selector and generation
+- Audio players for segments and TTS results
 
 ### Not Yet Implemented
 
-- Phase 7: Segment Workflow (SegmentCard, TTS controls)
 - Phase 8: Docker
 
 ## Key Technical Decisions
@@ -132,13 +134,13 @@ make lint      # ESLint
 
 4. **File uploads**: Use `file.file` (SpooledTemporaryFile) not `file` directly.
 
-## Next Steps (Phase 6-7 - Waveform & Segments)
+## Next Steps (Phase 8 - Polish & Docker)
 
-1. Build WaveformPlayer and WaveformControls components
-2. Integrate regions with segment CRUD
-3. Create SegmentCard with analysis display
-4. Implement TTS controls and result player
-5. Add translation editor with auto-save
+1. Add error boundaries for graceful error handling
+2. Implement keyboard shortcuts for common actions
+3. Create backend Dockerfile with FFmpeg
+4. Create frontend production build config
+5. Write docker-compose.yml for full stack
 
 ## API Design Reference
 
