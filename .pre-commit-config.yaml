@@ -17,3 +17,19 @@ repos:
         pass_filenames: false
         files: ^backend/
         types: [python]
+
+      - id: eslint-frontend
+        name: eslint (frontend)
+        entry: bash -c 'cd frontend && npm run lint'
+        language: system
+        pass_filenames: false
+        files: ^frontend/
+        types_or: [javascript, jsx, ts, tsx]
+
+      - id: vitest-frontend
+        name: vitest (frontend)
+        entry: bash -c 'cd frontend && npm run test:run'
+        language: system
+        pass_filenames: false
+        files: ^frontend/
+        types_or: [javascript, jsx, ts, tsx]
