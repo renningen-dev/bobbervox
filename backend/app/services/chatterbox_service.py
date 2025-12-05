@@ -168,8 +168,10 @@ class ChatterBoxService:
     async def check_health(self) -> bool:
         """Check if ChatterBox server is healthy."""
         try:
-            response = await self.client.get(f"{self.base_url}/docs")
-            return response.status_code == 200
+            # Use short timeout for health checks
+            async with httpx.AsyncClient(timeout=3.0) as client:
+                response = await client.get(f"{self.base_url}/docs")
+                return response.status_code == 200
         except Exception:
             return False
 
