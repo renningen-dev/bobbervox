@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { VideoUploadDropzone } from "../components/editor/VideoUploadDropzone";
+import { SegmentList } from "../components/segments/SegmentList";
 import { WaveformPlayer } from "../components/waveform/WaveformPlayer";
 import { useExtractAudio, useProject } from "../features/projects/api";
 import { buttonStyles, cardStyles, cn } from "../lib/styles";
@@ -54,11 +55,14 @@ export function ProjectEditorPage() {
           <AudioExtractionButton projectId={project.id} />
         </div>
       ) : (
-        <WaveformPlayer
-          projectId={project.id}
-          audioUrl={`http://localhost:8000/api/files/${project.id}/audio/${project.extracted_audio}`}
-          segments={project.segments}
-        />
+        <div className="space-y-6">
+          <WaveformPlayer
+            projectId={project.id}
+            audioUrl={`http://localhost:8000/api/files/${project.id}/audio/${project.extracted_audio}`}
+            segments={project.segments}
+          />
+          <SegmentList segments={project.segments} projectId={project.id} />
+        </div>
       )}
     </div>
   );
