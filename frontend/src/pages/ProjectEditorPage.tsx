@@ -1,5 +1,5 @@
 import { ArrowLeftIcon, ArrowRightIcon, PencilIcon } from "@heroicons/react/24/outline";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { VideoUploadDropzone } from "../components/editor/VideoUploadDropzone";
@@ -9,7 +9,7 @@ import { Spinner } from "../components/ui/Spinner";
 import { WaveformPlayer } from "../components/waveform/WaveformPlayer";
 import { useExtractAudio, useProject, useUpdateProject } from "../features/projects/api";
 import { getFileUrl } from "../lib/api-client";
-import { buttonStyles, cardStyles, cn } from "../lib/styles";
+import { buttonStyles, cn } from "../lib/styles";
 import { useEditorStore } from "../stores/editorStore";
 import { SOURCE_LANGUAGES, SUPPORTED_LANGUAGES, TARGET_LANGUAGES } from "../types";
 
@@ -17,6 +17,8 @@ export function ProjectEditorPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const { data: project, isLoading, error } = useProject(projectId!);
   const setCurrentProjectId = useEditorStore((s) => s.setCurrentProjectId);
+  const extractAudio = useExtractAudio();
+  const hasTriggeredExtractionRef = useRef(false);
 
   useEffect(() => {
     setCurrentProjectId(projectId || null);
@@ -31,6 +33,34 @@ export function ProjectEditorPage() {
       document.title = "Bobber VOX";
     };
   }, [project?.name]);
+
+  // Auto-trigger audio extraction when video is uploaded but audio not extracted
+  useEffect(() => {
+    if (
+      project?.source_video &&
+      !project?.extracted_audio &&
+      !hasTriggeredExtractionRef.current &&
+      !extractAudio.isPending
+    ) {
+      hasTriggeredExtractionRef.current = true;
+      extractAudio.mutate(project.id, {
+        onSuccess: () => {
+          toast.success("Audio extracted successfully");
+        },
+        onError: () => {
+          toast.error("Failed to extract audio");
+          hasTriggeredExtractionRef.current = false; // Allow retry
+        },
+      });
+    }
+  }, [project?.source_video, project?.extracted_audio, project?.id, extractAudio]);
+
+  // Reset extraction flag when audio is extracted
+  useEffect(() => {
+    if (project?.extracted_audio) {
+      hasTriggeredExtractionRef.current = false;
+    }
+  }, [project?.extracted_audio]);
 
   if (isLoading) {
     return (
@@ -68,9 +98,16 @@ export function ProjectEditorPage() {
       {!project.source_video ? (
         <VideoUploadDropzone projectId={project.id} />
       ) : !project.extracted_audio ? (
-        <div className={cn(cardStyles.base, "p-8 text-center")}>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">Video uploaded. Extract audio to continue.</p>
-          <AudioExtractionButton projectId={project.id} />
+        <div className={cn(
+          "p-8 text-center rounded-xl",
+          "bg-white/50 dark:bg-white/5 backdrop-blur-xl",
+          "border border-white/50 dark:border-white/10",
+          "shadow-lg shadow-black/5 dark:shadow-none"
+        )}>
+          <div className="flex flex-col items-center gap-3">
+            <Spinner size="lg" />
+            <p className="text-gray-600 dark:text-gray-400">Extracting audio from video...</p>
+          </div>
         </div>
       ) : (
         <div className="space-y-6">
@@ -175,32 +212,3 @@ function LanguageSelector({ projectId, sourceLanguage, targetLanguage }: Languag
   );
 }
 
-function AudioExtractionButton({ projectId }: { projectId: string }) {
-  const extractAudio = useExtractAudio();
-
-  const handleExtract = async () => {
-    try {
-      await extractAudio.mutateAsync(projectId);
-      toast.success("Audio extracted successfully");
-    } catch {
-      toast.error("Failed to extract audio");
-    }
-  };
-
-  return (
-    <button
-      onClick={handleExtract}
-      disabled={extractAudio.isPending}
-      className={cn(buttonStyles.base, buttonStyles.primary)}
-    >
-      {extractAudio.isPending ? (
-        <>
-          <Spinner size="sm" className="mr-2" />
-          Extracting...
-        </>
-      ) : (
-        "Extract Audio"
-      )}
-    </button>
-  );
-}

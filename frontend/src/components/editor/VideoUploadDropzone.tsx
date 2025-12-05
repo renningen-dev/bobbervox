@@ -3,7 +3,7 @@ import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 import { useUploadVideo } from "../../features/projects/api";
-import { cardStyles, cn } from "../../lib/styles";
+import { cn } from "../../lib/styles";
 
 interface VideoUploadDropzoneProps {
   projectId: string;
@@ -51,9 +51,13 @@ export function VideoUploadDropzone({ projectId }: VideoUploadDropzoneProps) {
     <div
       {...getRootProps()}
       className={cn(
-        cardStyles.base,
-        "p-12 border-2 border-dashed cursor-pointer transition-colors",
-        isDragActive ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20" : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500",
+        "p-12 rounded-xl cursor-pointer transition-all",
+        "bg-white/50 dark:bg-white/5 backdrop-blur-xl",
+        "border-2 border-dashed",
+        "shadow-lg shadow-black/5 dark:shadow-none",
+        isDragActive
+          ? "border-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/20"
+          : "border-white/50 dark:border-white/10 hover:border-indigo-300 dark:hover:border-indigo-500/50",
         uploadVideo.isPending && "opacity-50 cursor-not-allowed"
       )}
     >
