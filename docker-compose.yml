@@ -8,13 +8,20 @@ services:
     environment:
       - DATABASE_URL=sqlite+aiosqlite:///./data/bobbervox.db
       - PROJECTS_DIR=/app/projects
+      - VOICES_DIR=/app/voices
       - CORS_ORIGINS=${CORS_ORIGINS:-["http://localhost","http://localhost:80"]}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - FIREBASE_PROJECT_ID=${VITE_FIREBASE_PROJECT_ID}
       - HOSTNAME=${HOSTNAME:-localhost}
+      # ChatterBox - use Tailscale IP when connecting to local machine
+      - CHATTERBOX_BASE_URL=${CHATTERBOX_BASE_URL:-http://localhost:8004}
     volumes:
       - backend_data:/app/data
       - projects_data:/app/projects
+      - voices_data:/app/voices
+    networks:
+      - app_network
+      - tailscale_network
     restart: unless-stopped
 
   frontend:
@@ -32,8 +39,48 @@ services:
       - "80:80"
     depends_on:
       - backend
+    networks:
+      - app_network
     restart: unless-stopped
+
+  # Optional: Tailscale for connecting to local ChatterBox
+  # Start with: docker-compose up -d tailscale
+  # Stop with: docker-compose stop tailscale
+  # Or use profile: docker-compose --profile tailscale up -d
+  tailscale:
+    image: tailscale/tailscale:latest
+    hostname: bobbervox
+    profiles:
+      - tailscale
+    environment:
+      - TS_AUTHKEY=${TAILSCALE_AUTHKEY:-}
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=true
+      - TS_ACCEPT_DNS=false
+    volumes:
+      - tailscale_state:/var/lib/tailscale
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    networks:
+      - tailscale_network
+    restart: unless-stopped
+    # Healthcheck - container stays up even if can't reach peers
+    healthcheck:
+      test: ["CMD", "tailscale", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  app_network:
+    driver: bridge
+  tailscale_network:
+    driver: bridge
 
 volumes:
   backend_data:
   projects_data:
+  voices_data:
+  tailscale_state:

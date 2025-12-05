@@ -18,8 +18,12 @@ class Settings(BaseSettings):
     firebase_project_id: str = ""
     firebase_service_account_path: str = ""
 
+    # ChatterBox TTS
+    chatterbox_base_url: str = "http://localhost:8004"
+
     # Paths
     projects_dir: Path = Path("./projects")
+    voices_dir: Path = Path("./voices")
 
     # Upload limits
     max_upload_size_mb: int = 2000

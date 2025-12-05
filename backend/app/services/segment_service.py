@@ -7,6 +7,7 @@ from app.config import Settings
 from app.models import Segment
 from app.models.segment import SegmentStatus
 from app.repositories.segment_repo import SegmentRepository
+from app.services.chatterbox_service import ChatterBoxService
 from app.services.ffmpeg_service import FFmpegService
 from app.services.openai_service import OpenAIService
 from app.utils.exceptions import ProcessingError, SegmentNotFoundError
@@ -22,11 +23,13 @@ class SegmentService:
         ffmpeg: FFmpegService,
         settings: Settings,
         openai: Optional[OpenAIService] = None,
+        chatterbox: Optional[ChatterBoxService] = None,
     ) -> None:
         self.repo = repo
         self.ffmpeg = ffmpeg
         self.settings = settings
         self.openai = openai
+        self.chatterbox = chatterbox
 
     def _get_project_audio_path(self, project: Project) -> Path:
         """Get full audio path from project."""
@@ -177,7 +180,7 @@ class SegmentService:
         instructions: Optional[str] = None,
         openai: Optional[OpenAIService] = None,
     ) -> Segment:
-        """Generate TTS audio for segment."""
+        """Generate TTS audio for segment using OpenAI."""
         openai_service = openai or self.openai
         if openai_service is None:
             raise ProcessingError("OpenAI service not configured")
@@ -204,6 +207,65 @@ class SegmentService:
                 voice=voice,
                 output_path=output_path,
                 instructions=instructions,
+            )
+
+            relative_path = str(output_path.relative_to(self.settings.projects_dir))
+            segment = await self.repo.update(
+                segment,
+                status=SegmentStatus.COMPLETED,
+                tts_result_file=relative_path,
+            )
+        except Exception as e:
+            segment = await self.repo.update(
+                segment,
+                status=SegmentStatus.ERROR,
+                error_message=str(e),
+            )
+            raise
+
+        return segment
+
+    async def generate_tts_chatterbox(
+        self,
+        segment: Segment,
+        voice: str = "Emily.wav",
+        custom_voice_path: Optional[str] = None,
+        chatterbox: Optional[ChatterBoxService] = None,
+    ) -> Segment:
+        """Generate TTS audio for segment using ChatterBox.
+
+        Args:
+            segment: The segment to generate TTS for
+            voice: Voice name (predefined or custom format)
+            custom_voice_path: Absolute path to custom voice file (if using custom voice)
+            chatterbox: Optional ChatterBox service instance
+        """
+        chatterbox_service = chatterbox or self.chatterbox
+        if chatterbox_service is None:
+            chatterbox_service = ChatterBoxService(base_url=self.settings.chatterbox_base_url)
+
+        if not segment.translated_text:
+            raise ProcessingError(
+                "Segment has no translated text. Analyze or add translation first."
+            )
+
+        output_dir = self._get_output_dir(segment.project_id)
+        filename = ChatterBoxService.format_tts_filename(segment.start_time)
+        output_path = output_dir / filename
+
+        # Update status to generating
+        segment = await self.repo.update(
+            segment,
+            status=SegmentStatus.GENERATING_TTS,
+            tts_voice=voice,
+        )
+
+        try:
+            await chatterbox_service.generate_tts(
+                text=segment.translated_text,
+                voice=voice,
+                output_path=output_path,
+                custom_voice_path=custom_voice_path,
             )
 
             relative_path = str(output_path.relative_to(self.settings.projects_dir))

@@ -17,10 +17,13 @@ import {
   useUpdateAnalysis,
   useUpdateTranslation,
 } from "../../features/segments/api";
+import { useSettings } from "../../features/settings/api";
+import { useCustomVoices } from "../../features/voices/api";
 import { ApiError, fetchAuthenticatedAudio } from "../../lib/api-client";
 import { buttonStyles, cn } from "../../lib/styles";
 import { useEditorStore } from "../../stores/editorStore";
-import type { Segment, TTSVoice } from "../../types";
+import type { Segment } from "../../types";
+import { OPENAI_TTS_VOICES, CHATTERBOX_TTS_VOICES } from "../../types";
 import { AudioPlayer } from "../ui/AudioPlayer";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
 import { Spinner } from "../ui/Spinner";
@@ -60,7 +63,29 @@ const statusColors: Record<string, string> = {
 
 export function SegmentCard({ segment, projectId }: SegmentCardProps) {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [selectedVoice, setSelectedVoice] = useState<TTSVoice>("alloy");
+
+  // Get TTS provider from settings
+  const { data: settings } = useSettings();
+  const { data: customVoices } = useCustomVoices();
+  const ttsProvider = settings?.tts_provider ?? "openai";
+
+  // Build voice list: predefined voices + custom voices (for ChatterBox only)
+  const voices: string[] = ttsProvider === "chatterbox"
+    ? [
+        ...CHATTERBOX_TTS_VOICES,
+        ...(customVoices?.map(v => `custom:${v.id}:${v.name}`) ?? []),
+      ]
+    : [...OPENAI_TTS_VOICES];
+
+  const defaultVoice = ttsProvider === "chatterbox" ? "Emily.wav" : "alloy";
+
+  const [selectedVoice, setSelectedVoice] = useState(defaultVoice);
+
+  // Reset voice when provider changes
+  useEffect(() => {
+    setSelectedVoice(defaultVoice);
+  }, [defaultVoice]);
+
   // Track local edits to translation, null means no local edits (use segment value)
   const [localTranslation, setLocalTranslation] = useState<string | null>(null);
   const translationText = localTranslation ?? segment.translated_text ?? "";
@@ -553,6 +578,7 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
                     <VoiceListbox
                       value={selectedVoice}
                       onChange={setSelectedVoice}
+                      voices={voices}
                       disabled={isProcessing}
                     />
                   </div>

@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,6 +7,7 @@ from app.config import Settings, get_settings
 from app.database import get_async_session
 from app.dependencies.auth import CurrentUser, get_current_user
 from app.prompts import build_system_prompt, get_user_prompt
+from app.repositories.custom_voice_repo import CustomVoiceRepository
 from app.repositories.project_repo import ProjectRepository
 from app.repositories.segment_repo import SegmentRepository
 from app.schemas.segment import (
@@ -21,7 +22,7 @@ from app.services.openai_service import OpenAIService
 from app.services.project_service import ProjectService
 from app.services.segment_service import SegmentService
 from app.services.settings_service import SettingsService
-from app.utils.exceptions import ProcessingError
+from app.utils.exceptions import NotFoundError, ProcessingError
 
 router = APIRouter(tags=["segments"])
 
@@ -37,6 +38,12 @@ def get_settings_service(
     session: Annotated[AsyncSession, Depends(get_async_session)],
 ) -> SettingsService:
     return SettingsService(session)
+
+
+def get_custom_voice_repo(
+    session: Annotated[AsyncSession, Depends(get_async_session)],
+) -> CustomVoiceRepository:
+    return CustomVoiceRepository(session)
 
 
 def get_segment_service(
@@ -216,32 +223,61 @@ async def generate_tts(
     project_service: Annotated[ProjectService, Depends(get_project_service)],
     settings_service: Annotated[SettingsService, Depends(get_settings_service)],
     segment_service: Annotated[SegmentService, Depends(get_segment_service)],
+    custom_voice_repo: Annotated[CustomVoiceRepository, Depends(get_custom_voice_repo)],
+    settings: Annotated[Settings, Depends(get_settings)],
     current_user: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> SegmentRead:
-    """Generate TTS audio for segment using OpenAI gpt-4o-mini-tts with instructions."""
+    """Generate TTS audio for segment.
+
+    Uses OpenAI gpt-4o-mini-tts or ChatterBox based on user settings.
+    """
     segment = await segment_service.get_by_id(segment_id)
     # Verify user owns the project and get target language
     project = await project_service.get_by_id(segment.project_id, current_user.user_id)
 
-    # Get user settings for API key
+    # Get user settings for TTS provider
     user_settings = await settings_service.get_settings(current_user.user_id)
-    if not user_settings.openai_api_key:
-        raise ProcessingError("OpenAI API key not configured in settings")
 
-    # Create OpenAI service with API key
-    openai_service = OpenAIService(api_key=user_settings.openai_api_key)
+    # Resolve custom voice to file path if needed
+    voice = data.voice
+    custom_voice_path: Optional[str] = None
+    if voice.startswith("custom:"):
+        # Format: custom:voice_id:voice_name
+        parts = voice.split(":", 2)
+        if len(parts) >= 2:
+            voice_id = parts[1]
+            custom_voice = await custom_voice_repo.get_by_id(voice_id, current_user.user_id)
+            if not custom_voice:
+                raise NotFoundError(f"Custom voice not found: {voice_id}")
+            # Get absolute path to the custom voice file
+            custom_voice_path = str(settings.voices_dir / custom_voice.file_path)
 
-    # Set target language from project if not provided in request
-    if not data.target_language:
-        data.target_language = project.target_language
+    if user_settings.tts_provider == "chatterbox":
+        # Use ChatterBox TTS (local)
+        segment = await segment_service.generate_tts_chatterbox(
+            segment,
+            voice=voice,
+            custom_voice_path=custom_voice_path,
+        )
+    else:
+        # Use OpenAI TTS (default)
+        if not user_settings.openai_api_key:
+            raise ProcessingError("OpenAI API key not configured in settings")
 
-    # Build TTS instructions from analysis fields
-    instructions = data.build_instructions()
+        # Create OpenAI service with API key
+        openai_service = OpenAIService(api_key=user_settings.openai_api_key)
 
-    segment = await segment_service.generate_tts(
-        segment,
-        voice=data.voice,
-        instructions=instructions if instructions else None,
-        openai=openai_service,
-    )
+        # Set target language from project if not provided in request
+        if not data.target_language:
+            data.target_language = project.target_language
+
+        # Build TTS instructions from analysis fields
+        instructions = data.build_instructions()
+
+        segment = await segment_service.generate_tts(
+            segment,
+            voice=voice,
+            instructions=instructions if instructions else None,
+            openai=openai_service,
+        )
     return SegmentRead.model_validate(segment)

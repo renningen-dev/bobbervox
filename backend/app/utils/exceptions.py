@@ -16,6 +16,11 @@ class SegmentNotFoundError(BobberVoxException):
         super().__init__(status_code=404, detail=f"Segment with ID {segment_id} not found")
 
 
+class NotFoundError(BobberVoxException):
+    def __init__(self, detail: str):
+        super().__init__(status_code=404, detail=detail)
+
+
 class FileValidationError(BobberVoxException):
     def __init__(self, detail: str):
         super().__init__(status_code=400, detail=detail)

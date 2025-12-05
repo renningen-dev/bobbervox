@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import get_settings
 from app.database import create_tables
 from app.middleware.auth import FirebaseAuthMiddleware, init_firebase
-from app.routers import files, projects, segments
+from app.routers import files, projects, segments, voices
 from app.routers import settings as settings_router
 
 # Configure logging
@@ -22,6 +22,7 @@ logging.basicConfig(
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
     settings.projects_dir.mkdir(parents=True, exist_ok=True)
+    settings.voices_dir.mkdir(parents=True, exist_ok=True)
     init_firebase()
     await create_tables()
     yield
@@ -51,6 +52,7 @@ def create_app() -> FastAPI:
     app.include_router(segments.router, prefix="/api")
     app.include_router(files.router, prefix="/api")
     app.include_router(settings_router.router, prefix="/api")
+    app.include_router(voices.router, prefix="/api")
 
     return app
 

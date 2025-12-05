@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from enum import Enum
+
 from sqlalchemy import String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -8,6 +10,13 @@ from app.models.base import TimestampMixin
 
 DEFAULT_CONTEXT = """The audio is from outdoor/rural environments, specifically fishing videos.
 The speaker uses casual, relaxed language typical of outdoor content creators."""
+
+
+class TTSProvider(str, Enum):
+    """Available TTS providers."""
+
+    OPENAI = "openai"
+    CHATTERBOX = "chatterbox"
 
 
 class UserSettings(TimestampMixin, Base):
@@ -22,6 +31,11 @@ class UserSettings(TimestampMixin, Base):
 
     # Context description for analysis (user-editable)
     context_description: Mapped[str] = mapped_column(Text, default=DEFAULT_CONTEXT, nullable=False)
+
+    # TTS provider selection (openai or chatterbox)
+    tts_provider: Mapped[str] = mapped_column(
+        String(32), default=TTSProvider.OPENAI.value, nullable=False
+    )
 
 
 # Keep AppSettings for backwards compatibility during migration

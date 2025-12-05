@@ -8,6 +8,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { ProjectEditorPage } from "./pages/ProjectEditorPage";
 import { ProjectListPage } from "./pages/ProjectListPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { VoicesPage } from "./pages/VoicesPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -38,6 +39,7 @@ function App() {
             >
               <Route path="/projects" element={<ProjectListPage />} />
               <Route path="/projects/:projectId" element={<ProjectEditorPage />} />
+              <Route path="/voices" element={<VoicesPage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Route>
           </Routes>

@@ -113,6 +113,15 @@ export const api = {
     });
     return handleResponse<T>(response);
   },
+
+  postFormData: async <T>(path: string, formData: FormData): Promise<T> => {
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: formData,
+    });
+    return handleResponse<T>(response);
+  },
 };
 
 export function getFileUrl(projectId: string, type: "audio" | "segments" | "output", filename: string): string {

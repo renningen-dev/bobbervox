@@ -69,7 +69,7 @@ class SegmentUpdateAnalysis(BaseModel):
     pause_before: list[str] = []
 
 
-TTS_VOICES = [
+OPENAI_TTS_VOICES = [
     "alloy",
     "ash",
     "ballad",
@@ -84,6 +84,40 @@ TTS_VOICES = [
     "shimmer",
     "verse",
 ]
+
+CHATTERBOX_TTS_VOICES = [
+    "Abigail.wav",
+    "Adrian.wav",
+    "Alexander.wav",
+    "Alice.wav",
+    "Austin.wav",
+    "Axel.wav",
+    "Connor.wav",
+    "Cora.wav",
+    "Elena.wav",
+    "Eli.wav",
+    "Emily.wav",
+    "Everett.wav",
+    "Gabriel.wav",
+    "Gianna.wav",
+    "Henry.wav",
+    "Ian.wav",
+    "Jade.wav",
+    "Jeremiah.wav",
+    "Jordan.wav",
+    "Julian.wav",
+    "Layla.wav",
+    "Leonardo.wav",
+    "Michael.wav",
+    "Miles.wav",
+    "Olivia.wav",
+    "Ryan.wav",
+    "Taylor.wav",
+    "Thomas.wav",
+]
+
+# Combined list for validation
+ALL_TTS_VOICES = OPENAI_TTS_VOICES + CHATTERBOX_TTS_VOICES
 
 
 class TTSRequest(BaseModel):
@@ -103,8 +137,11 @@ class TTSRequest(BaseModel):
     @field_validator("voice")
     @classmethod
     def validate_voice(cls, v: str) -> str:
-        if v not in TTS_VOICES:
-            raise ValueError(f"Invalid voice. Must be one of: {TTS_VOICES}")
+        # Allow custom voices (format: custom:id:name)
+        if v.startswith("custom:"):
+            return v
+        if v not in ALL_TTS_VOICES:
+            raise ValueError(f"Invalid voice. Must be one of: {ALL_TTS_VOICES}")
         return v
 
     def build_instructions(self) -> str:

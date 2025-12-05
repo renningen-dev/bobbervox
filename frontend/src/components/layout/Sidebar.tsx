@@ -3,6 +3,7 @@ import {
   ChevronDownIcon,
   Cog6ToothIcon,
   FolderIcon,
+  MicrophoneIcon,
 } from "@heroicons/react/24/outline";
 import { Disclosure, DisclosureButton, DisclosurePanel } from "@headlessui/react";
 import { signOut } from "firebase/auth";
@@ -77,6 +78,16 @@ export function Sidebar() {
             </>
           )}
         </Disclosure>
+
+        <NavLink
+          to="/voices"
+          className={({ isActive }) =>
+            cn(navLinkStyles.base, isActive ? navLinkStyles.active : navLinkStyles.inactive)
+          }
+        >
+          <MicrophoneIcon className="w-5 h-5" />
+          Custom Voices
+        </NavLink>
 
         <NavLink
           to="/settings"

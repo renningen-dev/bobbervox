@@ -5,7 +5,7 @@ from typing import Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.app_settings import DEFAULT_CONTEXT, UserSettings
+from app.models.app_settings import DEFAULT_CONTEXT, TTSProvider, UserSettings
 
 
 class SettingsService:
@@ -27,6 +27,7 @@ class SettingsService:
                 user_id=user_id,
                 openai_api_key="",
                 context_description=DEFAULT_CONTEXT,
+                tts_provider=TTSProvider.OPENAI.value,
             )
             self.session.add(settings)
             await self.session.flush()
@@ -39,6 +40,7 @@ class SettingsService:
         user_id: str,
         openai_api_key: Optional[str] = None,
         context_description: Optional[str] = None,
+        tts_provider: Optional[str] = None,
     ) -> UserSettings:
         """Update user settings."""
         settings = await self.get_settings(user_id)
@@ -47,6 +49,8 @@ class SettingsService:
             settings.openai_api_key = openai_api_key
         if context_description is not None:
             settings.context_description = context_description
+        if tts_provider is not None:
+            settings.tts_provider = tts_provider
 
         await self.session.flush()
         await self.session.refresh(settings)
@@ -61,3 +65,8 @@ class SettingsService:
         """Get context description for analysis."""
         settings = await self.get_settings(user_id)
         return settings.context_description
+
+    async def get_tts_provider(self, user_id: str) -> str:
+        """Get TTS provider from user settings."""
+        settings = await self.get_settings(user_id)
+        return settings.tts_provider
