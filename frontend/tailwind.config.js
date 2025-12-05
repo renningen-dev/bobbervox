@@ -6,9 +6,15 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   safelist: [
-    // Primary button colors
-    "bg-purple-700",
-    "hover:bg-purple-600",
+    // Primary button colors (light)
+    "bg-purple-500",
+    "hover:bg-purple-400",
+    // Primary button colors (dark)
+    "dark:bg-purple-700",
+    "dark:hover:bg-purple-600",
+    // AudioPlayer button (dark)
+    "dark:bg-purple-600",
+    "dark:hover:bg-purple-500",
     "shadow-purple-500/20",
     // Secondary button colors
     "bg-gray-200",

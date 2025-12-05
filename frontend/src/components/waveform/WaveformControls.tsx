@@ -58,7 +58,7 @@ export function WaveformControls({
           className={cn(
             buttonStyles.base,
             buttonStyles.primary,
-            "w-14 h-10 p-0"
+            "px-5 py-2"
           )}
           title={isPlaying ? "Pause" : "Play"}
         >
@@ -77,7 +77,7 @@ export function WaveformControls({
           disabled={!isReady}
           className={cn(
             buttonStyles.base,
-            showAllSegments ? buttonStyles.primary : buttonStyles.secondary,
+            buttonStyles.secondary,
             "p-2"
           )}
           title={showAllSegments ? "Hide segments" : "Show segments"}

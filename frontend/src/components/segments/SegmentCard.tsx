@@ -21,6 +21,7 @@ import { ApiError, getFileUrl } from "../../lib/api-client";
 import { buttonStyles, cardStyles, cn } from "../../lib/styles";
 import { useEditorStore } from "../../stores/editorStore";
 import type { Segment, TTSVoice } from "../../types";
+import { AudioPlayer } from "../ui/AudioPlayer";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
 import { Spinner } from "../ui/Spinner";
 import { VoiceListbox } from "../ui/VoiceListbox";
@@ -305,7 +306,7 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
                 <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Segment Audio
                 </h4>
-                <audio src={audioUrl} controls className="w-full h-8" />
+                <AudioPlayer src={audioUrl} />
               </div>
             )}
 
@@ -482,7 +483,7 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
               <div>
                 <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Generated Audio</h4>
                 <div className="flex items-center gap-2">
-                  <audio src={ttsUrl} controls className="flex-1 h-8" />
+                  <AudioPlayer src={ttsUrl} className="flex-1" />
                   <a
                     href={`${ttsUrl}?download=true`}
                     className={cn(buttonStyles.base, buttonStyles.secondary, "p-1.5")}
