@@ -21,6 +21,15 @@ export function ProjectEditorPage() {
     return () => setCurrentProjectId(null);
   }, [projectId, setCurrentProjectId]);
 
+  useEffect(() => {
+    if (project?.name) {
+      document.title = `${project.name} - Bobber VOX`;
+    }
+    return () => {
+      document.title = "Bobber VOX";
+    };
+  }, [project?.name]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
