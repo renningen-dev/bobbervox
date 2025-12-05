@@ -5,6 +5,7 @@ import type {
   CreateSegmentRequest,
   Segment,
   TTSRequest,
+  UpdateAnalysisRequest,
   UpdateTranslationRequest,
 } from "../../types";
 
@@ -154,6 +155,32 @@ export function useUpdateTranslation() {
       segmentId: string;
       data: UpdateTranslationRequest;
     }) => api.put<Segment>(`/segments/${segmentId}/translation`, data),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: segmentKeys.detail(data.id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: segmentKeys.list(data.project_id),
+      });
+      // Also invalidate project details since it includes segments
+      queryClient.invalidateQueries({
+        queryKey: projectKeys.detail(data.project_id),
+      });
+    },
+  });
+}
+
+export function useUpdateAnalysis() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      segmentId,
+      data,
+    }: {
+      segmentId: string;
+      data: UpdateAnalysisRequest;
+    }) => api.put<Segment>(`/segments/${segmentId}/analysis`, data),
     onSuccess: (data) => {
       queryClient.invalidateQueries({
         queryKey: segmentKeys.detail(data.id),

@@ -72,6 +72,18 @@ export interface UpdateTranslationRequest {
   translated_text: string;
 }
 
+export interface UpdateAnalysisRequest {
+  tone?: string;
+  emotion?: string;
+  style?: string;
+  pace?: string;
+  intonation?: string;
+  voice?: string;
+  tempo?: string;
+  emphasis?: string[];
+  pause_before?: string[];
+}
+
 export const TTS_VOICES = [
   "alloy",
   "echo",

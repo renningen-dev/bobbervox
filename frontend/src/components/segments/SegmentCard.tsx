@@ -4,12 +4,13 @@ import {
   SpeakerWaveIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   useAnalyzeSegment,
   useDeleteSegment,
   useGenerateTTS,
+  useUpdateAnalysis,
   useUpdateTranslation,
 } from "../../features/segments/api";
 import { ApiError, getFileUrl } from "../../lib/api-client";
@@ -18,6 +19,7 @@ import { useEditorStore } from "../../stores/editorStore";
 import type { Segment, TTSVoice } from "../../types";
 import { TTS_VOICES } from "../../types";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
+import { Spinner } from "../ui/Spinner";
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof ApiError && error.data) {
@@ -63,8 +65,40 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
   const analyzeSegment = useAnalyzeSegment();
   const generateTTS = useGenerateTTS();
   const updateTranslation = useUpdateTranslation();
+  const updateAnalysis = useUpdateAnalysis();
   const deleteSegment = useDeleteSegment();
   const setHoveredSegmentId = useEditorStore((s) => s.setHoveredSegmentId);
+
+  // Local state for editable analysis fields
+  const [localAnalysis, setLocalAnalysis] = useState<{
+    tone?: string;
+    emotion?: string;
+    style?: string;
+    pace?: string;
+    intonation?: string;
+    voice?: string;
+    tempo?: string;
+    emphasis?: string[];
+    pause_before?: string[];
+  } | null>(null);
+
+  const currentAnalysis = {
+    tone: localAnalysis?.tone ?? segment.analysis_json?.tone ?? "",
+    emotion: localAnalysis?.emotion ?? segment.analysis_json?.emotion ?? "",
+    style: localAnalysis?.style ?? segment.analysis_json?.style ?? "",
+    pace: localAnalysis?.pace ?? segment.analysis_json?.pace ?? "",
+    intonation: localAnalysis?.intonation ?? segment.analysis_json?.intonation ?? "",
+    voice: localAnalysis?.voice ?? segment.analysis_json?.voice ?? "",
+    tempo: localAnalysis?.tempo ?? segment.analysis_json?.tempo ?? "",
+    emphasis: localAnalysis?.emphasis ?? segment.analysis_json?.emphasis ?? [],
+    pause_before: localAnalysis?.pause_before ?? segment.analysis_json?.pause_before ?? [],
+  };
+
+  // Convert arrays to comma-separated strings for display
+  const emphasisText = currentAnalysis.emphasis.join(", ");
+  const pauseBeforeText = currentAnalysis.pause_before.join(", ");
+
+  const hasAnalysisEdits = localAnalysis !== null;
 
   const handleAnalyze = async () => {
     try {
@@ -98,6 +132,51 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
     } catch {
       toast.error("Failed to save translation");
     }
+  };
+
+  // Debounced auto-save for analysis
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Auto-save with debounce when analysis changes
+  useEffect(() => {
+    if (!hasAnalysisEdits) return;
+
+    const saveAnalysis = async () => {
+      try {
+        await updateAnalysis.mutateAsync({
+          segmentId: segment.id,
+          data: currentAnalysis,
+        });
+        setLocalAnalysis(null);
+      } catch {
+        toast.error("Failed to save analysis");
+      }
+    };
+
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    saveTimeoutRef.current = setTimeout(saveAnalysis, 1000);
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasAnalysisEdits, segment.id, localAnalysis]);
+
+  const updateAnalysisField = (field: string, value: string | string[]) => {
+    setLocalAnalysis((prev) => ({
+      ...currentAnalysis,
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const updateArrayField = (field: "emphasis" | "pause_before", text: string) => {
+    const values = text.split(",").map((s) => s.trim()).filter(Boolean);
+    updateAnalysisField(field, values);
   };
 
   const handleDelete = async () => {
@@ -202,34 +281,100 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
             {/* Analysis display */}
             {segment.analysis_json && (
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">
-                  AI Analysis
-                </h4>
-                <div className="bg-gray-50 rounded-lg p-3 space-y-2 text-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-medium text-gray-700">AI Analysis</h4>
+                  {updateAnalysis.isPending && <Spinner size="sm" />}
+                </div>
+                <div className="bg-gray-50 rounded-lg p-3 space-y-3 text-sm">
                   {segment.original_transcription && (
                     <div>
                       <span className="font-medium text-gray-600">Transcription: </span>
                       <span className="text-gray-800">{segment.original_transcription}</span>
                     </div>
                   )}
-                  {segment.analysis_json.tone && (
+                  <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <span className="font-medium text-gray-600">Tone: </span>
-                      <span className="text-gray-800">{segment.analysis_json.tone}</span>
+                      <label className="block font-medium text-gray-600 mb-1">Tone</label>
+                      <input
+                        type="text"
+                        value={currentAnalysis.tone}
+                        onChange={(e) => updateAnalysisField("tone", e.target.value)}
+                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
                     </div>
-                  )}
-                  {segment.analysis_json.emotion && (
                     <div>
-                      <span className="font-medium text-gray-600">Emotion: </span>
-                      <span className="text-gray-800">{segment.analysis_json.emotion}</span>
+                      <label className="block font-medium text-gray-600 mb-1">Emotion</label>
+                      <input
+                        type="text"
+                        value={currentAnalysis.emotion}
+                        onChange={(e) => updateAnalysisField("emotion", e.target.value)}
+                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
                     </div>
-                  )}
-                  {segment.analysis_json.pace && (
                     <div>
-                      <span className="font-medium text-gray-600">Pace: </span>
-                      <span className="text-gray-800">{segment.analysis_json.pace}</span>
+                      <label className="block font-medium text-gray-600 mb-1">Style</label>
+                      <input
+                        type="text"
+                        value={currentAnalysis.style}
+                        onChange={(e) => updateAnalysisField("style", e.target.value)}
+                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
                     </div>
-                  )}
+                    <div>
+                      <label className="block font-medium text-gray-600 mb-1">Pace</label>
+                      <input
+                        type="text"
+                        value={currentAnalysis.pace}
+                        onChange={(e) => updateAnalysisField("pace", e.target.value)}
+                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-medium text-gray-600 mb-1">Intonation</label>
+                      <input
+                        type="text"
+                        value={currentAnalysis.intonation}
+                        onChange={(e) => updateAnalysisField("intonation", e.target.value)}
+                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-medium text-gray-600 mb-1">Voice</label>
+                      <input
+                        type="text"
+                        value={currentAnalysis.voice}
+                        onChange={(e) => updateAnalysisField("voice", e.target.value)}
+                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-medium text-gray-600 mb-1">Tempo</label>
+                      <input
+                        type="text"
+                        value={currentAnalysis.tempo}
+                        onChange={(e) => updateAnalysisField("tempo", e.target.value)}
+                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-medium text-gray-600 mb-1">Emphasis</label>
+                      <input
+                        type="text"
+                        value={emphasisText}
+                        onChange={(e) => updateArrayField("emphasis", e.target.value)}
+                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-medium text-gray-600 mb-1">Pause before</label>
+                      <input
+                        type="text"
+                        value={pauseBeforeText}
+                        onChange={(e) => updateArrayField("pause_before", e.target.value)}
+                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

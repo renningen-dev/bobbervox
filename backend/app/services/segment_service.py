@@ -116,12 +116,15 @@ class SegmentService:
         segment = await self.get_by_id(segment_id)
         return await self.repo.update(segment, translated_text=translated_text)
 
-    async def update_analysis(self, segment_id: str, analysis_json: dict) -> Segment:
+    async def update_analysis(self, segment_id: str, analysis_updates: dict) -> Segment:
         segment = await self.get_by_id(segment_id)
+        # Merge with existing analysis instead of replacing
+        existing_analysis = segment.analysis_json or {}
+        merged_analysis = {**existing_analysis, **analysis_updates}
         return await self.repo.update(
             segment,
-            analysis_json=analysis_json,
-            original_transcription=analysis_json.get("transcription"),
+            analysis_json=merged_analysis,
+            original_transcription=merged_analysis.get("transcription"),
         )
 
     def _get_output_dir(self, project_id: str) -> Path:
