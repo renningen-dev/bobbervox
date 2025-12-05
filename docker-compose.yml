@@ -12,10 +12,12 @@ services:
       - CORS_ORIGINS=${CORS_ORIGINS:-["http://localhost","http://localhost:80"]}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - FIREBASE_PROJECT_ID=${VITE_FIREBASE_PROJECT_ID}
+      - FIREBASE_SERVICE_ACCOUNT_PATH=/app/firebase-key.json
       - HOSTNAME=${HOSTNAME:-localhost}
       # ChatterBox - use Tailscale IP when connecting to local machine
       - CHATTERBOX_BASE_URL=${CHATTERBOX_BASE_URL:-http://localhost:8004}
     volumes:
+      - ./firebase-key.json:/app/firebase-key.json:ro
       - backend_data:/app/data
       - projects_data:/app/projects
       - voices_data:/app/voices
