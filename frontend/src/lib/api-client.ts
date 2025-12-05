@@ -133,6 +133,30 @@ export async function fetchAuthenticatedAudio(projectId: string, type: "audio" |
   return URL.createObjectURL(blob);
 }
 
+export async function downloadAuthenticatedFile(url: string, filename: string): Promise<void> {
+  const response = await fetch(url, {
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new ApiError(response.status, response.statusText);
+  }
+
+  const blob = await response.blob();
+  const blobUrl = URL.createObjectURL(blob);
+
+  // Create temporary link and trigger download
+  const link = document.createElement("a");
+  link.href = blobUrl;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  // Cleanup
+  URL.revokeObjectURL(blobUrl);
+}
+
 export function getApiBaseUrl(): string {
   return API_BASE_URL;
 }

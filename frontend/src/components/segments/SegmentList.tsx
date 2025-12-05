@@ -1,7 +1,10 @@
 import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
-import { getApiBaseUrl } from "../../lib/api-client";
+import { useState } from "react";
+import { toast } from "sonner";
+import { downloadAuthenticatedFile, getApiBaseUrl } from "../../lib/api-client";
 import { buttonStyles, cn } from "../../lib/styles";
 import type { Segment } from "../../types";
+import { Spinner } from "../ui/Spinner";
 import { SegmentCard } from "./SegmentCard";
 
 interface SegmentListProps {
@@ -10,6 +13,8 @@ interface SegmentListProps {
 }
 
 export function SegmentList({ segments = [], projectId }: SegmentListProps) {
+  const [isDownloading, setIsDownloading] = useState(false);
+
   if (!segments || segments.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500 dark:text-gray-400">
@@ -26,7 +31,19 @@ export function SegmentList({ segments = [], projectId }: SegmentListProps) {
 
   // Check if any segments have TTS results
   const hasTTSResults = segments.some((s) => s.tts_result_file);
-  const downloadAllUrl = `${getApiBaseUrl()}/files/${projectId}/download-all`;
+
+  const handleDownloadAll = async () => {
+    setIsDownloading(true);
+    try {
+      const url = `${getApiBaseUrl()}/files/${projectId}/download-all`;
+      await downloadAuthenticatedFile(url, `${projectId}_tts_output.zip`);
+      toast.success("Download started");
+    } catch {
+      toast.error("Failed to download files");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   return (
     <div className="space-y-3">
@@ -35,14 +52,18 @@ export function SegmentList({ segments = [], projectId }: SegmentListProps) {
           Segments ({segments.length})
         </h3>
         {hasTTSResults && (
-          <a
-            href={downloadAllUrl}
-            download
+          <button
+            onClick={handleDownloadAll}
+            disabled={isDownloading}
             className={cn(buttonStyles.base, buttonStyles.secondary, "text-sm")}
           >
-            <ArrowDownTrayIcon className="w-4 h-4 mr-1.5" />
-            Download All TTS
-          </a>
+            {isDownloading ? (
+              <Spinner size="xs" className="mr-1.5" />
+            ) : (
+              <ArrowDownTrayIcon className="w-4 h-4 mr-1.5" />
+            )}
+            {isDownloading ? "Downloading..." : "Download All TTS"}
+          </button>
         )}
       </div>
       {sortedSegments.map((segment) => (
