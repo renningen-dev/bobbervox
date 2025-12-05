@@ -1,4 +1,4 @@
-import { TrashIcon } from "@heroicons/react/24/outline";
+import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -6,6 +6,7 @@ import { useDeleteProject } from "../../features/projects/api";
 import { cardStyles, cn } from "../../lib/styles";
 import type { ProjectListItem } from "../../types";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
+import { RenameProjectDialog } from "./RenameProjectDialog";
 
 interface ProjectCardProps {
   project: ProjectListItem;
@@ -13,6 +14,7 @@ interface ProjectCardProps {
 
 export function ProjectCard({ project }: ProjectCardProps) {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isRenameOpen, setIsRenameOpen] = useState(false);
   const deleteProject = useDeleteProject();
 
   const handleDelete = async () => {
@@ -31,7 +33,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
     <>
       <div className={cn(cardStyles.base, "p-4 hover:shadow-md transition-shadow")}>
         <Link to={`/projects/${project.id}`} className="block">
-          <h3 className="font-medium text-gray-900 dark:text-white truncate">{project.name}</h3>
+          <h3 className="text-gray-900 dark:text-white truncate">{project.name}</h3>
           <div className="mt-2 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
             <span>{formattedDate}</span>
             <span>{project.segment_count} segments</span>
@@ -49,7 +51,16 @@ export function ProjectCard({ project }: ProjectCardProps) {
           </div>
         </Link>
 
-        <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 flex justify-end">
+        <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-2">
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              setIsRenameOpen(true);
+            }}
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+          >
+            <PencilIcon className="w-5 h-5" />
+          </button>
           <button
             onClick={(e) => {
               e.preventDefault();
@@ -61,6 +72,13 @@ export function ProjectCard({ project }: ProjectCardProps) {
           </button>
         </div>
       </div>
+
+      <RenameProjectDialog
+        isOpen={isRenameOpen}
+        onClose={() => setIsRenameOpen(false)}
+        projectId={project.id}
+        currentName={project.name}
+      />
 
       <ConfirmDialog
         isOpen={isDeleteOpen}
