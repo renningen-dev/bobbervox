@@ -45,3 +45,7 @@ class ProjectService:
         project = await self.get_by_id(project_id)
         self._delete_project_directories(project_id)
         await self.repo.delete(project)
+
+    async def update_source_video(self, project_id: str, video_path: str) -> Project:
+        project = await self.get_by_id(project_id)
+        return await self.repo.update(project, source_video=video_path)

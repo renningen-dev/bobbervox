@@ -1,9 +1,11 @@
 from collections.abc import AsyncGenerator
+from pathlib import Path
 
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
+from app.config import Settings, get_settings
 from app.database import Base, get_async_session
 from app.main import app
 
@@ -38,11 +40,23 @@ async def async_session(async_engine) -> AsyncGenerator[AsyncSession, None]:
 
 
 @pytest.fixture
-async def async_client(async_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
+def test_settings(tmp_path: Path) -> Settings:
+    return Settings(projects_dir=tmp_path)
+
+
+@pytest.fixture
+async def async_client(
+    async_session: AsyncSession,
+    test_settings: Settings,
+) -> AsyncGenerator[AsyncClient, None]:
     async def override_get_session() -> AsyncGenerator[AsyncSession, None]:
         yield async_session
 
+    def override_get_settings() -> Settings:
+        return test_settings
+
     app.dependency_overrides[get_async_session] = override_get_session
+    app.dependency_overrides[get_settings] = override_get_settings
 
     async with AsyncClient(
         transport=ASGITransport(app=app),

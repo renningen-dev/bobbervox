@@ -39,4 +39,5 @@ class ProjectRepository:
         for key, value in kwargs.items():
             setattr(project, key, value)
         await self.session.flush()
+        await self.session.refresh(project)
         return project

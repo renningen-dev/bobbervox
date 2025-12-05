@@ -1,3 +1,5 @@
+import io
+
 import pytest
 from httpx import AsyncClient
 
@@ -64,3 +66,38 @@ async def test_delete_project(async_client: AsyncClient):
 
     get_response = await async_client.get(f"/api/projects/{project_id}")
     assert get_response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_upload_video(async_client: AsyncClient):
+    create_response = await async_client.post(
+        "/api/projects",
+        json={"name": "Test Project"},
+    )
+    project_id = create_response.json()["id"]
+
+    fake_video = io.BytesIO(b"fake video content")
+    response = await async_client.post(
+        f"/api/projects/{project_id}/upload",
+        files={"file": ("test.mp4", fake_video, "video/mp4")},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["source_video"] is not None
+    assert "video.mp4" in data["source_video"]
+
+
+@pytest.mark.asyncio
+async def test_upload_video_invalid_extension(async_client: AsyncClient):
+    create_response = await async_client.post(
+        "/api/projects",
+        json={"name": "Test Project"},
+    )
+    project_id = create_response.json()["id"]
+
+    fake_file = io.BytesIO(b"not a video")
+    response = await async_client.post(
+        f"/api/projects/{project_id}/upload",
+        files={"file": ("test.txt", fake_file, "text/plain")},
+    )
+    assert response.status_code == 400
