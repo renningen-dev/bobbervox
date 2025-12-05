@@ -7,6 +7,7 @@ from app.config import Settings, get_settings
 from app.database import get_async_session
 from app.repositories.project_repo import ProjectRepository
 from app.schemas import ProjectCreate, ProjectList, ProjectRead
+from app.services.ffmpeg_service import FFmpegService
 from app.services.file_service import FileService
 from app.services.project_service import ProjectService
 
@@ -24,6 +25,12 @@ def get_file_service(
     settings: Annotated[Settings, Depends(get_settings)],
 ) -> FileService:
     return FileService(settings)
+
+
+def get_ffmpeg_service(
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> FFmpegService:
+    return FFmpegService(settings)
 
 
 @router.post("", response_model=ProjectRead, status_code=status.HTTP_201_CREATED)
@@ -83,4 +90,31 @@ async def upload_video(
         file.filename or "video.mp4",
     )
     project = await service.update_source_video(project_id, relative_path)
+    return ProjectRead.model_validate(project)
+
+
+@router.post("/{project_id}/extract-audio", response_model=ProjectRead)
+async def extract_audio(
+    project_id: str,
+    service: Annotated[ProjectService, Depends(get_project_service)],
+    file_service: Annotated[FileService, Depends(get_file_service)],
+    ffmpeg_service: Annotated[FFmpegService, Depends(get_ffmpeg_service)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> ProjectRead:
+    """Extract audio from uploaded video."""
+    project = await service.get_by_id(project_id)
+
+    if not project.source_video:
+        from app.utils.exceptions import ProcessingError
+
+        raise ProcessingError("No video uploaded for this project")
+
+    video_path = settings.projects_dir / project.source_video
+    audio_dir = file_service.get_audio_path(project_id)
+    audio_path = audio_dir / "full_audio.wav"
+
+    await ffmpeg_service.extract_audio(video_path, audio_path)
+
+    relative_path = str(audio_path.relative_to(settings.projects_dir))
+    project = await service.update_extracted_audio(project_id, relative_path)
     return ProjectRead.model_validate(project)
