@@ -4,6 +4,7 @@ from typing import Optional
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.models import Project, Segment
 
@@ -20,6 +21,12 @@ class ProjectRepository:
 
     async def get_by_id(self, project_id: str) -> Optional[Project]:
         result = await self.session.execute(select(Project).where(Project.id == project_id))
+        return result.scalar_one_or_none()
+
+    async def get_by_id_with_segments(self, project_id: str) -> Optional[Project]:
+        result = await self.session.execute(
+            select(Project).where(Project.id == project_id).options(selectinload(Project.segments))
+        )
         return result.scalar_one_or_none()
 
     async def list_all(self) -> list[tuple[Project, int]]:

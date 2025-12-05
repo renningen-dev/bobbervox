@@ -38,6 +38,12 @@ class ProjectService:
             raise ProjectNotFoundError(project_id)
         return project
 
+    async def get_by_id_with_segments(self, project_id: str) -> Project:
+        project = await self.repo.get_by_id_with_segments(project_id)
+        if not project:
+            raise ProjectNotFoundError(project_id)
+        return project
+
     async def list_all(self) -> list[tuple[Project, int]]:
         return await self.repo.list_all()
 

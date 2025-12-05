@@ -7,6 +7,7 @@ from app.config import Settings, get_settings
 from app.database import get_async_session
 from app.repositories.project_repo import ProjectRepository
 from app.schemas import ProjectCreate, ProjectList, ProjectRead
+from app.schemas.project import ProjectReadWithSegments
 from app.services.ffmpeg_service import FFmpegService
 from app.services.file_service import FileService
 from app.services.project_service import ProjectService
@@ -53,19 +54,20 @@ async def list_projects(
             name=project.name,
             created_at=project.created_at,
             source_video=project.source_video,
+            extracted_audio=project.extracted_audio,
             segment_count=segment_count,
         )
         for project, segment_count in projects
     ]
 
 
-@router.get("/{project_id}", response_model=ProjectRead)
+@router.get("/{project_id}", response_model=ProjectReadWithSegments)
 async def get_project(
     project_id: str,
     service: Annotated[ProjectService, Depends(get_project_service)],
-) -> ProjectRead:
-    project = await service.get_by_id(project_id)
-    return ProjectRead.model_validate(project)
+) -> ProjectReadWithSegments:
+    project = await service.get_by_id_with_segments(project_id)
+    return ProjectReadWithSegments.model_validate(project)
 
 
 @router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)

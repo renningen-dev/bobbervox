@@ -14,7 +14,7 @@ interface WaveformPlayerProps {
   segments: Segment[];
 }
 
-export function WaveformPlayer({ projectId, audioUrl, segments }: WaveformPlayerProps) {
+export function WaveformPlayer({ projectId, audioUrl, segments = [] }: WaveformPlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [zoomLevel, setZoomLevel] = useState(50);
 

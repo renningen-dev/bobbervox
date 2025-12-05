@@ -6,8 +6,8 @@ interface SegmentListProps {
   projectId: string;
 }
 
-export function SegmentList({ segments, projectId }: SegmentListProps) {
-  if (segments.length === 0) {
+export function SegmentList({ segments = [], projectId }: SegmentListProps) {
+  if (!segments || segments.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
         <p>No segments yet.</p>
