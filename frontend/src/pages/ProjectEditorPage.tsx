@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { VideoUploadDropzone } from "../components/editor/VideoUploadDropzone";
+import { WaveformPlayer } from "../components/waveform/WaveformPlayer";
 import { useExtractAudio, useProject } from "../features/projects/api";
 import { buttonStyles, cardStyles, cn } from "../lib/styles";
 import { useEditorStore } from "../stores/editorStore";
@@ -53,13 +54,11 @@ export function ProjectEditorPage() {
           <AudioExtractionButton projectId={project.id} />
         </div>
       ) : (
-        <div className="space-y-6">
-          <div className={cn(cardStyles.base, "p-4")}>
-            <p className="text-sm text-gray-500">
-              Audio extracted. Waveform editor coming soon...
-            </p>
-          </div>
-        </div>
+        <WaveformPlayer
+          projectId={project.id}
+          audioUrl={`http://localhost:8000/api/files/${project.id}/audio/${project.extracted_audio}`}
+          segments={project.segments}
+        />
       )}
     </div>
   );

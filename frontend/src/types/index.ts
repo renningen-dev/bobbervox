@@ -16,6 +16,10 @@ export interface Project {
   extracted_audio: string | null;
 }
 
+export interface ProjectWithSegments extends Project {
+  segments: Segment[];
+}
+
 export interface ProjectListItem extends Project {
   segment_count: number;
 }

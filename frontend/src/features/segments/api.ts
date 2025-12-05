@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../lib/api-client";
+import { projectKeys } from "../projects/api";
 import type {
   CreateSegmentRequest,
   Segment,
@@ -49,6 +50,10 @@ export function useCreateSegment() {
       queryClient.invalidateQueries({
         queryKey: segmentKeys.list(variables.projectId),
       });
+      // Also invalidate project details since it includes segments
+      queryClient.invalidateQueries({
+        queryKey: projectKeys.detail(variables.projectId),
+      });
     },
   });
 }
@@ -66,6 +71,9 @@ export function useDeleteSegment() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: segmentKeys.list(variables.projectId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: projectKeys.detail(variables.projectId),
       });
     },
   });
