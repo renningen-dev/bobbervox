@@ -15,11 +15,13 @@ class ProjectRepository:
 
     async def create(
         self,
+        user_id: str,
         name: str,
         source_language: str = "uk",
         target_language: str = "en",
     ) -> Project:
         project = Project(
+            user_id=user_id,
             name=name,
             source_language=source_language,
             target_language=target_language,
@@ -28,19 +30,24 @@ class ProjectRepository:
         await self.session.flush()
         return project
 
-    async def get_by_id(self, project_id: str) -> Optional[Project]:
-        result = await self.session.execute(select(Project).where(Project.id == project_id))
-        return result.scalar_one_or_none()
-
-    async def get_by_id_with_segments(self, project_id: str) -> Optional[Project]:
+    async def get_by_id(self, project_id: str, user_id: str) -> Optional[Project]:
         result = await self.session.execute(
-            select(Project).where(Project.id == project_id).options(selectinload(Project.segments))
+            select(Project).where(Project.id == project_id, Project.user_id == user_id)
         )
         return result.scalar_one_or_none()
 
-    async def list_all(self) -> list[tuple[Project, int]]:
+    async def get_by_id_with_segments(self, project_id: str, user_id: str) -> Optional[Project]:
+        result = await self.session.execute(
+            select(Project)
+            .where(Project.id == project_id, Project.user_id == user_id)
+            .options(selectinload(Project.segments))
+        )
+        return result.scalar_one_or_none()
+
+    async def list_by_user(self, user_id: str) -> list[tuple[Project, int]]:
         stmt = (
             select(Project, func.count(Segment.id).label("segment_count"))
+            .where(Project.user_id == user_id)
             .outerjoin(Segment)
             .group_by(Project.id)
             .order_by(Project.created_at.desc())

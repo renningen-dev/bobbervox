@@ -30,11 +30,13 @@ class ProjectService:
 
     async def create(
         self,
+        user_id: str,
         name: str,
         source_language: str = "uk",
         target_language: str = "en",
     ) -> Project:
         project = await self.repo.create(
+            user_id=user_id,
             name=name,
             source_language=source_language,
             target_language=target_language,
@@ -45,11 +47,12 @@ class ProjectService:
     async def update(
         self,
         project_id: str,
+        user_id: str,
         name: Optional[str] = None,
         source_language: Optional[str] = None,
         target_language: Optional[str] = None,
     ) -> Project:
-        project = await self.get_by_id(project_id)
+        project = await self.get_by_id(project_id, user_id)
         update_data = {}
         if name is not None:
             update_data["name"] = name
@@ -61,30 +64,32 @@ class ProjectService:
             return await self.repo.update(project, **update_data)
         return project
 
-    async def get_by_id(self, project_id: str) -> Project:
-        project = await self.repo.get_by_id(project_id)
+    async def get_by_id(self, project_id: str, user_id: str) -> Project:
+        project = await self.repo.get_by_id(project_id, user_id)
         if not project:
             raise ProjectNotFoundError(project_id)
         return project
 
-    async def get_by_id_with_segments(self, project_id: str) -> Project:
-        project = await self.repo.get_by_id_with_segments(project_id)
+    async def get_by_id_with_segments(self, project_id: str, user_id: str) -> Project:
+        project = await self.repo.get_by_id_with_segments(project_id, user_id)
         if not project:
             raise ProjectNotFoundError(project_id)
         return project
 
-    async def list_all(self) -> list[tuple[Project, int]]:
-        return await self.repo.list_all()
+    async def list_by_user(self, user_id: str) -> list[tuple[Project, int]]:
+        return await self.repo.list_by_user(user_id)
 
-    async def delete(self, project_id: str) -> None:
-        project = await self.get_by_id(project_id)
+    async def delete(self, project_id: str, user_id: str) -> None:
+        project = await self.get_by_id(project_id, user_id)
         self._delete_project_directories(project_id)
         await self.repo.delete(project)
 
-    async def update_source_video(self, project_id: str, video_path: str) -> Project:
-        project = await self.get_by_id(project_id)
+    async def update_source_video(self, project_id: str, user_id: str, video_path: str) -> Project:
+        project = await self.get_by_id(project_id, user_id)
         return await self.repo.update(project, source_video=video_path)
 
-    async def update_extracted_audio(self, project_id: str, audio_path: str) -> Project:
-        project = await self.get_by_id(project_id)
+    async def update_extracted_audio(
+        self, project_id: str, user_id: str, audio_path: str
+    ) -> Project:
+        project = await self.get_by_id(project_id, user_id)
         return await self.repo.update(project, extracted_audio=audio_path)

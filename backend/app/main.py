@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.database import create_tables
+from app.middleware.auth import FirebaseAuthMiddleware, init_firebase
 from app.routers import files, projects, segments
 from app.routers import settings as settings_router
 
@@ -21,6 +22,7 @@ logging.basicConfig(
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
     settings.projects_dir.mkdir(parents=True, exist_ok=True)
+    init_firebase()
     await create_tables()
     yield
 
@@ -42,6 +44,8 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    app.add_middleware(FirebaseAuthMiddleware)
 
     app.include_router(projects.router, prefix="/api")
     app.include_router(segments.router, prefix="/api")

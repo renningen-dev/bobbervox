@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import String
+from sqlalchemy import Index, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -14,7 +14,9 @@ if TYPE_CHECKING:
 
 class Project(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "projects"
+    __table_args__ = (Index("ix_projects_user_id", "user_id"),)
 
+    user_id: Mapped[str] = mapped_column(String(128), nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     source_language: Mapped[str] = mapped_column(String(10), nullable=False, default="uk")
     target_language: Mapped[str] = mapped_column(String(10), nullable=False, default="en")

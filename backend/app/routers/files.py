@@ -4,9 +4,14 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import FileResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Settings, get_settings
+from app.database import get_async_session
+from app.dependencies.auth import CurrentUser, get_current_user
+from app.repositories.project_repo import ProjectRepository
 from app.services.file_service import FileService
+from app.services.project_service import ProjectService
 from app.utils.exceptions import ProcessingError
 
 router = APIRouter(prefix="/files", tags=["files"])
@@ -18,13 +23,24 @@ def get_file_service(
     return FileService(settings)
 
 
+def get_project_service(
+    session: Annotated[AsyncSession, Depends(get_async_session)],
+) -> ProjectService:
+    repo = ProjectRepository(session)
+    return ProjectService(repo)
+
+
 @router.get("/{project_id}/audio/{filename}")
 async def get_audio_file(
     project_id: str,
     filename: str,
     file_service: Annotated[FileService, Depends(get_file_service)],
+    project_service: Annotated[ProjectService, Depends(get_project_service)],
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> FileResponse:
     """Serve project audio file."""
+    # Verify user owns the project
+    await project_service.get_by_id(project_id, current_user.user_id)
     file_path = file_service.get_file_path(project_id, "audio", filename)
     return FileResponse(
         path=file_path,
@@ -38,8 +54,12 @@ async def get_segment_file(
     project_id: str,
     filename: str,
     file_service: Annotated[FileService, Depends(get_file_service)],
+    project_service: Annotated[ProjectService, Depends(get_project_service)],
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> FileResponse:
     """Serve segment audio file."""
+    # Verify user owns the project
+    await project_service.get_by_id(project_id, current_user.user_id)
     file_path = file_service.get_file_path(project_id, "segments", filename)
     return FileResponse(
         path=file_path,
@@ -53,9 +73,13 @@ async def get_output_file(
     project_id: str,
     filename: str,
     file_service: Annotated[FileService, Depends(get_file_service)],
+    project_service: Annotated[ProjectService, Depends(get_project_service)],
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
     download: bool = False,
 ) -> FileResponse:
     """Serve TTS output file."""
+    # Verify user owns the project
+    await project_service.get_by_id(project_id, current_user.user_id)
     file_path = file_service.get_file_path(project_id, "output", filename)
     media_type = "audio/mpeg" if filename.endswith(".mp3") else "audio/wav"
 
@@ -75,9 +99,14 @@ async def get_output_file(
 async def download_all_tts(
     project_id: str,
     settings: Annotated[Settings, Depends(get_settings)],
+    project_service: Annotated[ProjectService, Depends(get_project_service)],
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> FileResponse:
     """Download all TTS output files as a zip archive."""
     import subprocess
+
+    # Verify user owns the project
+    await project_service.get_by_id(project_id, current_user.user_id)
 
     output_dir = settings.projects_dir / project_id / "output"
 

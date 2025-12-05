@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Settings, get_settings
 from app.database import get_async_session
+from app.dependencies.auth import CurrentUser, get_current_user
 from app.repositories.project_repo import ProjectRepository
 from app.schemas import ProjectCreate, ProjectList, ProjectRead
 from app.schemas.project import ProjectReadWithSegments, ProjectUpdate
@@ -38,8 +39,10 @@ def get_ffmpeg_service(
 async def create_project(
     data: ProjectCreate,
     service: Annotated[ProjectService, Depends(get_project_service)],
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> ProjectRead:
     project = await service.create(
+        user_id=current_user.user_id,
         name=data.name,
         source_language=data.source_language,
         target_language=data.target_language,
@@ -50,8 +53,9 @@ async def create_project(
 @router.get("", response_model=list[ProjectList])
 async def list_projects(
     service: Annotated[ProjectService, Depends(get_project_service)],
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> list[ProjectList]:
-    projects = await service.list_all()
+    projects = await service.list_by_user(current_user.user_id)
     return [
         ProjectList(
             id=project.id,
@@ -71,8 +75,9 @@ async def list_projects(
 async def get_project(
     project_id: str,
     service: Annotated[ProjectService, Depends(get_project_service)],
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> ProjectReadWithSegments:
-    project = await service.get_by_id_with_segments(project_id)
+    project = await service.get_by_id_with_segments(project_id, current_user.user_id)
     return ProjectReadWithSegments.model_validate(project)
 
 
@@ -81,9 +86,11 @@ async def update_project(
     project_id: str,
     data: ProjectUpdate,
     service: Annotated[ProjectService, Depends(get_project_service)],
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> ProjectRead:
     project = await service.update(
         project_id=project_id,
+        user_id=current_user.user_id,
         name=data.name,
         source_language=data.source_language,
         target_language=data.target_language,
@@ -95,8 +102,9 @@ async def update_project(
 async def delete_project(
     project_id: str,
     service: Annotated[ProjectService, Depends(get_project_service)],
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> None:
-    await service.delete(project_id)
+    await service.delete(project_id, current_user.user_id)
 
 
 @router.post("/{project_id}/upload", response_model=ProjectRead)
@@ -105,14 +113,15 @@ async def upload_video(
     file: UploadFile,
     service: Annotated[ProjectService, Depends(get_project_service)],
     file_service: Annotated[FileService, Depends(get_file_service)],
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> ProjectRead:
-    project = await service.get_by_id(project_id)
+    project = await service.get_by_id(project_id, current_user.user_id)
     relative_path = await file_service.save_upload(
         project_id,
         file.file,
         file.filename or "video.mp4",
     )
-    project = await service.update_source_video(project_id, relative_path)
+    project = await service.update_source_video(project_id, current_user.user_id, relative_path)
     return ProjectRead.model_validate(project)
 
 
@@ -123,9 +132,10 @@ async def extract_audio(
     file_service: Annotated[FileService, Depends(get_file_service)],
     ffmpeg_service: Annotated[FFmpegService, Depends(get_ffmpeg_service)],
     settings: Annotated[Settings, Depends(get_settings)],
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> ProjectRead:
     """Extract audio from uploaded video."""
-    project = await service.get_by_id(project_id)
+    project = await service.get_by_id(project_id, current_user.user_id)
 
     if not project.source_video:
         from app.utils.exceptions import ProcessingError
@@ -139,5 +149,5 @@ async def extract_audio(
     await ffmpeg_service.extract_audio(video_path, audio_path)
 
     relative_path = str(audio_path.relative_to(settings.projects_dir))
-    project = await service.update_extracted_audio(project_id, relative_path)
+    project = await service.update_extracted_audio(project_id, current_user.user_id, relative_path)
     return ProjectRead.model_validate(project)

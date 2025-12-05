@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Settings, get_settings
 from app.database import get_async_session
+from app.dependencies.auth import CurrentUser, get_current_user
 from app.prompts import build_system_prompt, get_user_prompt
 from app.repositories.project_repo import ProjectRepository
 from app.repositories.segment_repo import SegmentRepository
@@ -58,9 +59,10 @@ async def create_segment(
     data: SegmentCreate,
     project_service: Annotated[ProjectService, Depends(get_project_service)],
     segment_service: Annotated[SegmentService, Depends(get_segment_service)],
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> SegmentRead:
     """Create a new segment for a project and automatically extract audio."""
-    project = await project_service.get_by_id(project_id)
+    project = await project_service.get_by_id(project_id, current_user.user_id)
     segment = await segment_service.create(
         project=project,
         start_time=data.start_time,
@@ -77,9 +79,10 @@ async def list_segments(
     project_id: str,
     project_service: Annotated[ProjectService, Depends(get_project_service)],
     segment_service: Annotated[SegmentService, Depends(get_segment_service)],
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> list[SegmentRead]:
     """List all segments for a project."""
-    await project_service.get_by_id(project_id)  # Verify project exists
+    await project_service.get_by_id(project_id, current_user.user_id)
     segments = await segment_service.list_by_project(project_id)
     return [SegmentRead.model_validate(s) for s in segments]
 
@@ -87,19 +90,28 @@ async def list_segments(
 @router.get("/segments/{segment_id}", response_model=SegmentRead)
 async def get_segment(
     segment_id: str,
+    project_service: Annotated[ProjectService, Depends(get_project_service)],
     segment_service: Annotated[SegmentService, Depends(get_segment_service)],
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> SegmentRead:
     """Get a segment by ID."""
     segment = await segment_service.get_by_id(segment_id)
+    # Verify user owns the project
+    await project_service.get_by_id(segment.project_id, current_user.user_id)
     return SegmentRead.model_validate(segment)
 
 
 @router.delete("/segments/{segment_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_segment(
     segment_id: str,
+    project_service: Annotated[ProjectService, Depends(get_project_service)],
     segment_service: Annotated[SegmentService, Depends(get_segment_service)],
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> None:
     """Delete a segment."""
+    segment = await segment_service.get_by_id(segment_id)
+    # Verify user owns the project
+    await project_service.get_by_id(segment.project_id, current_user.user_id)
     await segment_service.delete(segment_id)
 
 
@@ -108,10 +120,11 @@ async def extract_segment_audio(
     segment_id: str,
     project_service: Annotated[ProjectService, Depends(get_project_service)],
     segment_service: Annotated[SegmentService, Depends(get_segment_service)],
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> SegmentRead:
     """Extract audio for a segment from project audio."""
     segment = await segment_service.get_by_id(segment_id)
-    project = await project_service.get_by_id(segment.project_id)
+    project = await project_service.get_by_id(segment.project_id, current_user.user_id)
     segment = await segment_service.extract_audio(segment, project)
     return SegmentRead.model_validate(segment)
 
@@ -120,9 +133,14 @@ async def extract_segment_audio(
 async def update_translation(
     segment_id: str,
     data: SegmentUpdateTranslation,
+    project_service: Annotated[ProjectService, Depends(get_project_service)],
     segment_service: Annotated[SegmentService, Depends(get_segment_service)],
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> SegmentRead:
     """Update segment translation."""
+    segment = await segment_service.get_by_id(segment_id)
+    # Verify user owns the project
+    await project_service.get_by_id(segment.project_id, current_user.user_id)
     segment = await segment_service.update_translation(
         segment_id,
         data.translated_text,
@@ -134,9 +152,14 @@ async def update_translation(
 async def update_analysis(
     segment_id: str,
     data: SegmentUpdateAnalysis,
+    project_service: Annotated[ProjectService, Depends(get_project_service)],
     segment_service: Annotated[SegmentService, Depends(get_segment_service)],
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> SegmentRead:
     """Update segment analysis."""
+    segment = await segment_service.get_by_id(segment_id)
+    # Verify user owns the project
+    await project_service.get_by_id(segment.project_id, current_user.user_id)
     segment = await segment_service.update_analysis(
         segment_id,
         data.model_dump(exclude_none=True),
@@ -150,6 +173,7 @@ async def analyze_segment(
     project_service: Annotated[ProjectService, Depends(get_project_service)],
     settings_service: Annotated[SettingsService, Depends(get_settings_service)],
     segment_service: Annotated[SegmentService, Depends(get_segment_service)],
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> SegmentRead:
     """Analyze segment audio using OpenAI gpt-4o-audio-preview.
 
@@ -158,17 +182,17 @@ async def analyze_segment(
     """
     segment = await segment_service.get_by_id(segment_id)
 
-    # Get project for language settings
-    project = await project_service.get_by_id(segment.project_id)
+    # Get project for language settings (also verifies ownership)
+    project = await project_service.get_by_id(segment.project_id, current_user.user_id)
 
-    # Get app settings for context and API key
-    app_settings = await settings_service.get_settings()
-    if not app_settings.openai_api_key:
+    # Get user settings for context and API key
+    user_settings = await settings_service.get_settings(current_user.user_id)
+    if not user_settings.openai_api_key:
         raise ProcessingError("OpenAI API key not configured in settings")
 
     # Build prompts dynamically
     system_prompt = build_system_prompt(
-        context=app_settings.context_description,
+        context=user_settings.context_description,
         source_language=project.source_language,
         target_language=project.target_language,
     )
@@ -176,7 +200,7 @@ async def analyze_segment(
 
     # Create OpenAI service with project-specific prompts
     openai_service = OpenAIService(
-        api_key=app_settings.openai_api_key,
+        api_key=user_settings.openai_api_key,
         system_prompt=system_prompt,
         user_prompt=user_prompt,
     )
@@ -189,19 +213,23 @@ async def analyze_segment(
 async def generate_tts(
     segment_id: str,
     data: TTSRequest,
+    project_service: Annotated[ProjectService, Depends(get_project_service)],
     settings_service: Annotated[SettingsService, Depends(get_settings_service)],
     segment_service: Annotated[SegmentService, Depends(get_segment_service)],
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> SegmentRead:
     """Generate TTS audio for segment using OpenAI tts-1-hd."""
     segment = await segment_service.get_by_id(segment_id)
+    # Verify user owns the project
+    await project_service.get_by_id(segment.project_id, current_user.user_id)
 
-    # Get app settings for API key
-    app_settings = await settings_service.get_settings()
-    if not app_settings.openai_api_key:
+    # Get user settings for API key
+    user_settings = await settings_service.get_settings(current_user.user_id)
+    if not user_settings.openai_api_key:
         raise ProcessingError("OpenAI API key not configured in settings")
 
     # Create OpenAI service with API key
-    openai_service = OpenAIService(api_key=app_settings.openai_api_key)
+    openai_service = OpenAIService(api_key=user_settings.openai_api_key)
 
     segment = await segment_service.generate_tts(segment, voice=data.voice, openai=openai_service)
     return SegmentRead.model_validate(segment)

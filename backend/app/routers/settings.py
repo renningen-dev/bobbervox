@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_async_session
+from app.dependencies.auth import CurrentUser, get_current_user
 from app.schemas.settings import SettingsResponse, SettingsUpdate
 from app.services.settings_service import SettingsService
 
@@ -26,8 +27,9 @@ def mask_api_key(key: str) -> str:
 @router.get("", response_model=SettingsResponse)
 async def get_settings(
     service: Annotated[SettingsService, Depends(get_settings_service)],
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> SettingsResponse:
-    settings = await service.get_settings()
+    settings = await service.get_settings(current_user.user_id)
     return SettingsResponse(
         openai_api_key=mask_api_key(settings.openai_api_key),
         openai_api_key_set=bool(settings.openai_api_key),
@@ -39,8 +41,10 @@ async def get_settings(
 async def update_settings(
     data: SettingsUpdate,
     service: Annotated[SettingsService, Depends(get_settings_service)],
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> SettingsResponse:
     settings = await service.update_settings(
+        user_id=current_user.user_id,
         openai_api_key=data.openai_api_key,
         context_description=data.context_description,
     )

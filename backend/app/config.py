@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     # OpenAI
     openai_api_key: str = ""
 
+    # Firebase
+    firebase_project_id: str = ""
+    firebase_service_account_path: str = ""
+
     # Paths
     projects_dir: Path = Path("./projects")
 
