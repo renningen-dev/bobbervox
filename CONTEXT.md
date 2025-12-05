@@ -11,7 +11,7 @@ Video dubbing workflow app: upload video → extract audio → select segments v
 
 ## Current State
 
-**Phase 1-2 Complete** - Backend core infrastructure and audio processing working.
+**Phase 1-3 Complete** - Backend fully functional with AI integration.
 
 ### Working Features
 
@@ -20,14 +20,15 @@ Video dubbing workflow app: upload video → extract audio → select segments v
 - Audio extraction: `POST /api/projects/{id}/extract-audio`
 - Segment CRUD: `POST/GET/DELETE /api/projects/{id}/segments`
 - Segment audio extraction: `POST /api/segments/{id}/extract`
+- AI analysis: `POST /api/segments/{id}/analyze` (gpt-4o-audio-preview)
+- TTS generation: `POST /api/segments/{id}/generate-tts` (tts-1-hd)
 - File serving: `GET /api/files/{project_id}/{audio|segments|output}/{filename}`
 - Translation/analysis updates: `PUT /api/segments/{id}/{translation|analysis}`
 - SQLite + async SQLAlchemy with Alembic migrations
-- Tests passing (31 tests), pre-commit hooks configured
+- Tests passing (47 tests), pre-commit hooks configured
 
 ### Not Yet Implemented
 
-- Phase 3: OpenAI integration (analysis + TTS)
 - Phase 4-7: Frontend (React + WaveSurfer.js)
 - Phase 8: Docker
 
@@ -104,18 +105,15 @@ make migrate   # Apply migrations
 
 4. **File uploads**: Use `file.file` (SpooledTemporaryFile) not `file` directly.
 
-## Next Steps (Phase 3)
+## Next Steps (Phase 4 - Frontend)
 
-1. Create `OpenAIService` in `app/services/openai_service.py`:
-    - `analyze_audio(audio_path) -> AnalysisResult` (transcription, tone, emotion, style)
-    - `generate_tts(text, voice, instructions) -> audio_path`
-    - Use OpenAI's async client
+1. Initialize Vite + React + TypeScript project in `frontend/`
+2. Configure Tailwind CSS and Headless UI
+3. Set up TanStack Query and Zustand stores
+4. Create routing structure with React Router
+5. Implement API client with fetch
 
-2. Add endpoints:
-    - `POST /api/segments/{id}/analyze` - Trigger AI analysis
-    - `POST /api/segments/{id}/generate-tts` - Generate TTS audio
-
-3. Write mocked tests using `respx` for OpenAI API calls
+Key libraries: react, react-router-dom, zustand, @tanstack/react-query, @headlessui/react, tailwindcss, wavesurfer.js
 
 ## API Design Reference
 
