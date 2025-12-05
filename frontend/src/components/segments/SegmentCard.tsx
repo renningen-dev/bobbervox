@@ -5,9 +5,9 @@ import {
 } from "@headlessui/react";
 import {
   ArrowDownTrayIcon,
-  ChevronDownIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
+import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -18,7 +18,7 @@ import {
   useUpdateTranslation,
 } from "../../features/segments/api";
 import { ApiError, getFileUrl } from "../../lib/api-client";
-import { buttonStyles, cardStyles, cn } from "../../lib/styles";
+import { buttonStyles, cn } from "../../lib/styles";
 import { useEditorStore } from "../../stores/editorStore";
 import type { Segment, TTSVoice } from "../../types";
 import { AudioPlayer } from "../ui/AudioPlayer";
@@ -236,32 +236,33 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
     <>
       <Disclosure
         as="div"
-        className={cn(cardStyles.base, "overflow-hidden")}
+        className={cn(
+          "rounded-xl overflow-hidden",
+          "bg-white/50 dark:bg-white/5 backdrop-blur-xl",
+          "border border-white/50 dark:border-white/10",
+          "shadow-lg shadow-black/5 dark:shadow-none"
+        )}
         onMouseEnter={() => setHoveredSegmentId(segment.id)}
         onMouseLeave={() => setHoveredSegmentId(null)}
       >
-        {({ open }) => (
-          <>
-            {/* Header */}
-            <DisclosureButton className="w-full p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 text-left">
-              <div className="flex items-center gap-3">
-                <ChevronDownIcon
-                  className={cn(
-                    "w-5 h-5 text-gray-400 transition-transform duration-200",
-                    open && "rotate-180"
-                  )}
-                />
-                <div>
-                  <span className="font-mono text-sm text-gray-600 dark:text-gray-300">
-                    {formatTime(segment.start_time)} - {formatTime(segment.end_time)}
-                    <span className="text-gray-400 ml-1">
-                      ({(segment.end_time - segment.start_time).toFixed(1)}s)
-                    </span>
+        <>
+          {/* Header */}
+          <DisclosureButton className="group w-full p-4 flex items-center justify-between cursor-pointer text-left">
+            <div className="flex items-center gap-3">
+              <ChevronDownIcon
+                className="size-5 fill-gray-500 group-data-[hover]:fill-gray-700 dark:fill-white/60 dark:group-data-[hover]:fill-white transition-transform duration-200 group-data-[open]:rotate-180"
+              />
+              <div>
+                <span className="font-mono text-sm text-gray-700 dark:text-gray-200 group-data-[hover]:text-gray-900 dark:group-data-[hover]:text-white">
+                  {formatTime(segment.start_time)} - {formatTime(segment.end_time)}
+                  <span className="text-gray-500 dark:text-gray-400 ml-1">
+                    ({(segment.end_time - segment.start_time).toFixed(1)}s)
                   </span>
-                </div>
+                </span>
               </div>
+            </div>
 
-              <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
                 {(isAnalyzingLocal || (segment.status === "analyzing" && !segment.analysis_json)) ? (
                   <span className="flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300">
                     <Spinner size="xs" />
@@ -295,11 +296,11 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
               </div>
             </DisclosureButton>
 
-            {/* Expanded content */}
-            <DisclosurePanel
-              transition
-              className="border-t border-gray-100 dark:border-gray-700 p-4 space-y-4 origin-top transition-all duration-200 ease-out data-[closed]:opacity-0 data-[closed]:-translate-y-2"
-            >
+          {/* Expanded content */}
+          <DisclosurePanel
+            transition
+            className="border-t border-black/5 dark:border-white/5 p-4 space-y-4 origin-top transition-all duration-200 ease-out data-[closed]:opacity-0 data-[closed]:-translate-y-2"
+          >
             {/* Segment audio player */}
             {audioUrl && (
               <div>
@@ -334,7 +335,7 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
                   <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">AI Analysis</h4>
                   {updateAnalysis.isPending && <Spinner size="sm" />}
                 </div>
-                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 space-y-3 text-sm">
+                <div className="bg-gray-200/60 dark:bg-white/5 rounded-lg p-3 space-y-3 text-sm">
                   {segment.original_transcription && (
                     <div>
                       <span className="font-medium text-gray-600 dark:text-gray-400">Transcription: </span>
@@ -348,7 +349,7 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
                         type="text"
                         value={currentAnalysis.tone}
                         onChange={(e) => updateAnalysisField("tone", e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-0 dark:outline dark:outline-white/10 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-3 py-1.5 text-sm rounded-lg bg-gray-200/60 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white/25"
                       />
                     </div>
                     <div>
@@ -357,7 +358,7 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
                         type="text"
                         value={currentAnalysis.emotion}
                         onChange={(e) => updateAnalysisField("emotion", e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-0 dark:outline dark:outline-white/10 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-3 py-1.5 text-sm rounded-lg bg-gray-200/60 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white/25"
                       />
                     </div>
                     <div>
@@ -366,7 +367,7 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
                         type="text"
                         value={currentAnalysis.style}
                         onChange={(e) => updateAnalysisField("style", e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-0 dark:outline dark:outline-white/10 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-3 py-1.5 text-sm rounded-lg bg-gray-200/60 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white/25"
                       />
                     </div>
                     <div>
@@ -375,7 +376,7 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
                         type="text"
                         value={currentAnalysis.pace}
                         onChange={(e) => updateAnalysisField("pace", e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-0 dark:outline dark:outline-white/10 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-3 py-1.5 text-sm rounded-lg bg-gray-200/60 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white/25"
                       />
                     </div>
                     <div>
@@ -384,7 +385,7 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
                         type="text"
                         value={currentAnalysis.intonation}
                         onChange={(e) => updateAnalysisField("intonation", e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-0 dark:outline dark:outline-white/10 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-3 py-1.5 text-sm rounded-lg bg-gray-200/60 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white/25"
                       />
                     </div>
                     <div>
@@ -393,7 +394,7 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
                         type="text"
                         value={currentAnalysis.voice}
                         onChange={(e) => updateAnalysisField("voice", e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-0 dark:outline dark:outline-white/10 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-3 py-1.5 text-sm rounded-lg bg-gray-200/60 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white/25"
                       />
                     </div>
                     <div>
@@ -402,7 +403,7 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
                         type="text"
                         value={currentAnalysis.tempo}
                         onChange={(e) => updateAnalysisField("tempo", e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-0 dark:outline dark:outline-white/10 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-3 py-1.5 text-sm rounded-lg bg-gray-200/60 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white/25"
                       />
                     </div>
                     <div>
@@ -411,7 +412,7 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
                         type="text"
                         value={emphasisText}
                         onChange={(e) => updateArrayField("emphasis", e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-0 dark:outline dark:outline-white/10 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-3 py-1.5 text-sm rounded-lg bg-gray-200/60 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white/25"
                       />
                     </div>
                     <div>
@@ -420,7 +421,7 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
                         type="text"
                         value={pauseBeforeText}
                         onChange={(e) => updateArrayField("pause_before", e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-0 dark:outline dark:outline-white/10 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-3 py-1.5 text-sm rounded-lg bg-gray-200/60 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white/25"
                       />
                     </div>
                   </div>
@@ -437,7 +438,7 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
                 <textarea
                   value={translationText}
                   onChange={(e) => setLocalTranslation(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-0 dark:outline dark:outline-white/10 rounded-lg shadow-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-1.5 text-sm rounded-lg bg-gray-200/60 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white/25"
                   rows={3}
                   placeholder="Enter translated text..."
                 />
@@ -495,9 +496,8 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
               </div>
             )}
 
-            </DisclosurePanel>
-          </>
-        )}
+          </DisclosurePanel>
+        </>
       </Disclosure>
 
       <ConfirmDialog

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useDeleteProject } from "../../features/projects/api";
-import { cardStyles, cn } from "../../lib/styles";
+import { cn } from "../../lib/styles";
 import type { ProjectListItem } from "../../types";
 import { SUPPORTED_LANGUAGES } from "../../types";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
@@ -37,7 +37,7 @@ function ProjectTableRow({ project }: { project: ProjectListItem }) {
 
   return (
     <>
-      <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+      <tr className="hover:bg-white/50 dark:hover:bg-white/5">
         <td className="px-4 py-3">
           <Link
             to={`/projects/${project.id}`}
@@ -118,9 +118,14 @@ function ProjectTableRow({ project }: { project: ProjectListItem }) {
 
 export function ProjectTable({ projects }: ProjectTableProps) {
   return (
-    <div className={cn(cardStyles.base, "overflow-hidden")}>
+    <div className={cn(
+      "overflow-hidden rounded-xl",
+      "bg-white/50 dark:bg-white/5 backdrop-blur-xl",
+      "border border-white/50 dark:border-white/10",
+      "shadow-lg shadow-black/5 dark:shadow-none"
+    )}>
       <table className="w-full">
-        <thead className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
+        <thead className="bg-gray-200/60 dark:bg-white/5 border-b border-black/5 dark:border-white/10">
           <tr>
             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               Name
@@ -142,7 +147,7 @@ export function ProjectTable({ projects }: ProjectTableProps) {
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+        <tbody className="divide-y divide-black/5 dark:divide-white/10">
           {projects.map((project) => (
             <ProjectTableRow key={project.id} project={project} />
           ))}

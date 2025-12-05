@@ -7,8 +7,11 @@ export function Layout() {
   const { isDark, toggle } = useThemeStore();
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-white/10">
+    <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors relative">
+      {/* Gradient background layer */}
+      <div className="absolute inset-0 z-0 bg-gradient-to-br from-indigo-100 via-gray-50 to-purple-100 dark:from-indigo-950/20 dark:via-gray-900 dark:to-purple-950/20 pointer-events-none" />
+
+      <header className="flex-shrink-0 bg-white/50 dark:bg-white/5 backdrop-blur-xl border-b border-white/50 dark:border-white/10 relative z-10">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <Link to="/projects" className="flex items-center gap-2">
@@ -26,7 +29,7 @@ export function Layout() {
         </div>
       </header>
 
-      <div className="flex">
+      <div className="flex flex-1 overflow-hidden relative z-10">
         <Sidebar />
         <main className="flex-1 p-8 overflow-auto">
           <Outlet />

@@ -1,5 +1,5 @@
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from "@headlessui/react";
-import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/24/outline";
+import { CheckIcon, ChevronDownIcon } from "@heroicons/react/20/solid";
 import { cn } from "../../lib/styles";
 import type { TTSVoice } from "../../types";
 import { TTS_VOICES } from "../../types";
@@ -16,16 +16,17 @@ export function VoiceListbox({ value, onChange, disabled }: VoiceListboxProps) {
       <div className="relative">
         <ListboxButton
           className={cn(
-            "relative w-full cursor-pointer rounded-lg bg-white dark:bg-gray-800 py-2 pl-3 pr-10 text-left text-sm",
-            "border border-gray-300 dark:border-0 dark:outline dark:outline-white/10 shadow-sm",
+            "group relative w-full cursor-pointer rounded-lg py-1.5 pl-3 pr-8 text-left text-sm",
+            "bg-gray-500/10 dark:bg-white/5 backdrop-blur-xl",
+            "border border-black/10 dark:border-white/10",
             "text-gray-900 dark:text-white",
-            "focus:outline-none focus:ring-2 focus:ring-indigo-500",
+            "focus:outline-none data-[focus]:outline-2 data-[focus]:-outline-offset-2 data-[focus]:outline-indigo-500 dark:data-[focus]:outline-white/25",
             "disabled:opacity-50 disabled:cursor-not-allowed"
           )}
         >
           <span className="block truncate capitalize">{value}</span>
-          <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-            <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+          <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5">
+            <ChevronDownIcon className="size-4 fill-gray-500 group-data-[hover]:fill-gray-700 dark:fill-white/60 dark:group-data-[hover]:fill-white" />
           </span>
         </ListboxButton>
 
@@ -33,9 +34,12 @@ export function VoiceListbox({ value, onChange, disabled }: VoiceListboxProps) {
           anchor="bottom"
           transition
           className={cn(
-            "absolute z-10 mt-1 max-h-60 w-[var(--button-width)] overflow-auto rounded-lg bg-white dark:bg-gray-800 py-1",
-            "text-sm shadow-lg ring-1 ring-black/5 dark:ring-0 dark:outline dark:outline-white/15 focus:outline-none",
-            "transition duration-150 ease-out data-[closed]:opacity-0 data-[closed]:scale-95"
+            "z-10 w-[var(--button-width)] rounded-xl p-1 [--anchor-gap:4px]",
+            "bg-gray-500/10 dark:bg-gray-800/80 backdrop-blur-xl",
+            "border border-black/10 dark:border-white/10",
+            "shadow-lg shadow-black/5 dark:shadow-none",
+            "focus:outline-none",
+            "transition duration-100 ease-in data-[closed]:opacity-0"
           )}
         >
           {TTS_VOICES.map((voice) => (
@@ -43,21 +47,13 @@ export function VoiceListbox({ value, onChange, disabled }: VoiceListboxProps) {
               key={voice}
               value={voice}
               className={cn(
-                "relative cursor-pointer select-none py-2 pl-10 pr-4",
+                "group flex cursor-pointer items-center gap-2 rounded-lg py-1.5 px-3 select-none",
                 "text-gray-900 dark:text-white",
-                "data-[focus]:bg-gray-100 dark:data-[focus]:bg-gray-700 data-[selected]:font-semibold"
+                "data-[focus]:bg-gray-100 dark:data-[focus]:bg-white/10"
               )}
             >
-              {({ selected }) => (
-                <>
-                  <span className="block truncate capitalize">{voice}</span>
-                  {selected && (
-                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-indigo-600 dark:text-indigo-400">
-                      <CheckIcon className="h-5 w-5" aria-hidden="true" />
-                    </span>
-                  )}
-                </>
-              )}
+              <CheckIcon className="invisible size-4 fill-indigo-600 dark:fill-white group-data-[selected]:visible" />
+              <span className="text-sm capitalize">{voice}</span>
             </ListboxOption>
           ))}
         </ListboxOptions>

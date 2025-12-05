@@ -4,7 +4,7 @@ import { CreateProjectDialog } from "../components/projects/CreateProjectDialog"
 import { ProjectCard } from "../components/projects/ProjectCard";
 import { ProjectTable } from "../components/projects/ProjectTable";
 import { useProjects } from "../features/projects/api";
-import { buttonStyles, cardStyles, cn } from "../lib/styles";
+import { buttonStyles, cn } from "../lib/styles";
 
 type ViewMode = "grid" | "table";
 
@@ -43,13 +43,13 @@ export function ProjectListPage() {
         <h1 className="text-xl font-medium text-gray-600 dark:text-gray-400">Projects</h1>
         <div className="flex items-center gap-2">
           {/* View Switcher */}
-          <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+          <div className="flex items-center bg-white/50 dark:bg-white/5 backdrop-blur-xl rounded-lg p-1 border border-white/50 dark:border-white/10">
             <button
               onClick={() => handleViewModeChange("grid")}
               className={cn(
                 "p-1.5 rounded-md transition-colors",
                 viewMode === "grid"
-                  ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm"
+                  ? "bg-white/80 dark:bg-white/10 text-gray-900 dark:text-white shadow-sm"
                   : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
               )}
               title="Grid view"
@@ -61,7 +61,7 @@ export function ProjectListPage() {
               className={cn(
                 "p-1.5 rounded-md transition-colors",
                 viewMode === "table"
-                  ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm"
+                  ? "bg-white/80 dark:bg-white/10 text-gray-900 dark:text-white shadow-sm"
                   : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
               )}
               title="Table view"
@@ -80,7 +80,7 @@ export function ProjectListPage() {
       </div>
 
       {projects?.length === 0 ? (
-        <div className={cn(cardStyles.base, "p-12 text-center")}>
+        <div className="p-12 text-center rounded-xl bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-lg shadow-black/5 dark:shadow-none">
           <p className="text-gray-500 dark:text-gray-400 mb-4">No projects yet</p>
           <button
             onClick={() => setIsCreateOpen(true)}

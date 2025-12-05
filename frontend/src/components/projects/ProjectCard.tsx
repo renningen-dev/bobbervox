@@ -3,10 +3,16 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useDeleteProject } from "../../features/projects/api";
-import { cardStyles, cn } from "../../lib/styles";
+import { cn } from "../../lib/styles";
 import type { ProjectListItem } from "../../types";
+import { SUPPORTED_LANGUAGES } from "../../types";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
 import { RenameProjectDialog } from "./RenameProjectDialog";
+
+function getLanguageFlag(code: string): string {
+  const lang = SUPPORTED_LANGUAGES.find((l) => l.code === code);
+  return lang?.flag ?? `/flags/${code}.png`;
+}
 
 interface ProjectCardProps {
   project: ProjectListItem;
@@ -31,9 +37,28 @@ export function ProjectCard({ project }: ProjectCardProps) {
 
   return (
     <>
-      <div className={cn(cardStyles.base, "p-4 hover:shadow-md transition-shadow")}>
-        <Link to={`/projects/${project.id}`} className="block">
-          <h3 className="text-gray-900 dark:text-white truncate">{project.name}</h3>
+      <div className={cn(
+        "p-4 rounded-xl transition-all hover:shadow-lg",
+        "bg-white/50 dark:bg-white/5 backdrop-blur-xl",
+        "border border-white/50 dark:border-white/10",
+        "shadow-lg shadow-black/5 dark:shadow-none"
+      )}>
+        <Link to={`/projects/${project.id}`} className="block relative">
+          {/* Language indicator - top right */}
+          <div className="absolute top-0 right-0 flex items-center gap-1.5 bg-black/5 dark:bg-white/10 rounded-lg px-2 py-1">
+            <img
+              src={getLanguageFlag(project.source_language)}
+              alt={project.source_language}
+              className="w-4 h-4 rounded-full object-cover"
+            />
+            <span className="text-gray-400 text-xs">→</span>
+            <img
+              src={getLanguageFlag(project.target_language)}
+              alt={project.target_language}
+              className="w-4 h-4 rounded-full object-cover"
+            />
+          </div>
+          <h3 className="text-gray-900 dark:text-white truncate pr-20">{project.name}</h3>
           <div className="mt-2 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
             <span>{formattedDate}</span>
             <span>{project.segment_count} segments</span>
@@ -51,7 +76,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
           </div>
         </Link>
 
-        <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-2">
+        <div className="mt-3 pt-3 border-t border-black/5 dark:border-white/10 flex justify-end gap-2">
           <button
             onClick={(e) => {
               e.preventDefault();

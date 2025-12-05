@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useCreateSegment } from "../../features/segments/api";
 import { useWaveSurfer } from "../../hooks/useWaveSurfer";
-import { cardStyles, cn } from "../../lib/styles";
+import { cn } from "../../lib/styles";
 import { useEditorStore } from "../../stores/editorStore";
 import type { Segment } from "../../types";
 import { WaveformControls } from "./WaveformControls";
@@ -166,11 +166,16 @@ export function WaveformPlayer({ projectId, audioUrl, segments = [] }: WaveformP
   };
 
   return (
-    <div className={cn(cardStyles.base, "p-4")}>
+    <div className={cn(
+      "rounded-xl p-4",
+      "bg-white/50 dark:bg-white/5 backdrop-blur-xl",
+      "border border-white/50 dark:border-white/10",
+      "shadow-lg shadow-black/5 dark:shadow-none"
+    )}>
       {/* Waveform container */}
       <div
         ref={setContainer}
-        className="w-full min-h-[128px] bg-gray-50 dark:bg-gray-900 dark:outline dark:outline-white/5 rounded-lg"
+        className="w-full min-h-[128px] bg-black/5 dark:bg-black/20 rounded-lg"
       />
 
       {/* Time display */}

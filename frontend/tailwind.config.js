@@ -47,6 +47,22 @@ export default {
     "data-[closed]:opacity-0",
     "data-[closed]:scale-95",
     "data-[closed]:-translate-y-2",
+    // Glassmorphism
+    "backdrop-blur-xl",
+    "bg-white/50",
+    "bg-white/80",
+    "bg-white/5",
+    "bg-gray-800/80",
+    // Button styles
+    "bg-purple-600",
+    "hover:bg-purple-500",
+    "shadow-white/50",
+    "focus-visible:outline",
+    "focus-visible:outline-2",
+    "focus-visible:-outline-offset-1",
+    "focus-visible:outline-purple-400",
+    "focus-visible:outline-gray-400",
+    "focus-visible:outline-red-400",
   ],
   theme: {
     extend: {},

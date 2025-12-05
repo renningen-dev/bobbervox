@@ -18,7 +18,7 @@ export function Sidebar() {
   const { data: projects } = useProjects();
 
   return (
-    <aside className="w-64 flex-shrink-0 border-r border-gray-200 dark:border-white/10 bg-white dark:bg-gray-800 h-[calc(100vh-4rem)] overflow-y-auto">
+    <aside className="w-64 flex-shrink-0 border-r border-white/50 dark:border-white/10 bg-white/50 dark:bg-white/5 backdrop-blur-xl overflow-y-auto">
       <nav className="p-4 space-y-2">
         <Disclosure defaultOpen>
           {({ open }) => (
