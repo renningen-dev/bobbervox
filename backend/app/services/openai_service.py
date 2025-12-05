@@ -97,7 +97,9 @@ class OpenAIService:
 
         # Parse the response
         content = response.choices[0].message.content
-        if not content:
+        logger.info(f"OpenAI response content: {content!r}")
+
+        if not content or not content.strip():
             raise ExternalAPIError("Empty response from OpenAI API")
 
         try:
@@ -110,9 +112,10 @@ class OpenAIService:
             else:
                 json_str = content.strip()
 
+            logger.info(f"Parsing JSON: {json_str!r}")
             result = json.loads(json_str)
         except (json.JSONDecodeError, IndexError) as e:
-            logger.error(f"Failed to parse OpenAI response: {content}")
+            logger.error(f"Failed to parse OpenAI response: {content!r}")
             raise ExternalAPIError(f"Failed to parse analysis response: {str(e)}") from e
 
         return result
