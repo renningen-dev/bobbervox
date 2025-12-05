@@ -136,8 +136,8 @@ export const getFlagPath = (code: string): string => `/flags/${code}.png`;
 
 // Supported languages for dubbing
 export const SUPPORTED_LANGUAGES: Language[] = [
-  { code: "en", name: "English", flag: "/flags/en.png" },
   { code: "uk", name: "Ukrainian", flag: "/flags/uk.png" },
+  { code: "en", name: "English", flag: "/flags/en.png" },
   { code: "es", name: "Spanish", flag: "/flags/es.png" },
   { code: "fr", name: "French", flag: "/flags/fr.png" },
   { code: "de", name: "German", flag: "/flags/de.png" },

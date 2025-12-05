@@ -160,37 +160,170 @@ export function LandingPage() {
           </div>
 
           {/* How It Works Section */}
-          <div className="w-full max-w-5xl mx-auto px-6 py-16">
-            <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-12">
+          <div className="w-full max-w-6xl mx-auto px-6 py-24">
+            <h2 className="text-4xl font-bold text-center text-gray-900 dark:text-white mb-4">
               How It Works
             </h2>
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="text-center">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center">
-                  <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">1</span>
+            <p className="text-center text-gray-600 dark:text-gray-400 mb-16 max-w-2xl mx-auto">
+              Three simple steps to transform your video content for global audiences
+            </p>
+            <div className="grid md:grid-cols-3 gap-6 relative">
+
+              {/* Step 1 */}
+              <div className="relative p-8 rounded-3xl bg-gradient-to-br from-indigo-50 to-indigo-100/50 dark:from-indigo-500/10 dark:to-indigo-500/5 border border-indigo-200/50 dark:border-indigo-500/20">
+                <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Upload & Extract</h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Upload your video and automatically extract the audio track for processing.
+                <div className="absolute -top-3 -right-3 w-10 h-10 rounded-full bg-indigo-500 text-white font-bold flex items-center justify-center shadow-lg">1</div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 text-center">Upload & Extract</h3>
+                <p className="text-gray-600 dark:text-gray-400 text-center">
+                  Upload your video file and we'll automatically extract the audio track for processing.
                 </p>
               </div>
-              <div className="text-center">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-purple-100 dark:bg-purple-500/20 flex items-center justify-center">
-                  <span className="text-2xl font-bold text-purple-600 dark:text-purple-400">2</span>
+
+              {/* Step 2 */}
+              <div className="relative p-8 rounded-3xl bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-500/10 dark:to-purple-500/5 border border-purple-200/50 dark:border-purple-500/20">
+                <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                  </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Select Segments</h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Use the waveform editor to select specific audio segments you want to dub.
+                <div className="absolute -top-3 -right-3 w-10 h-10 rounded-full bg-purple-500 text-white font-bold flex items-center justify-center shadow-lg">2</div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 text-center">Select Segments</h3>
+                <p className="text-gray-600 dark:text-gray-400 text-center">
+                  Use the interactive waveform editor to select specific audio segments you want to dub.
                 </p>
               </div>
-              <div className="text-center">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center">
-                  <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">3</span>
+
+              {/* Step 3 */}
+              <div className="relative p-8 rounded-3xl bg-gradient-to-br from-indigo-50 to-purple-100/50 dark:from-indigo-500/10 dark:to-purple-500/5 border border-indigo-200/50 dark:border-purple-500/20">
+                <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                  </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">AI Dubbing</h3>
-                <p className="text-gray-600 dark:text-gray-400">
+                <div className="absolute -top-3 -right-3 w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold flex items-center justify-center shadow-lg">3</div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 text-center">AI Dubbing</h3>
+                <p className="text-gray-600 dark:text-gray-400 text-center">
                   AI transcribes, translates, and generates natural voice-overs in your target language.
                 </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Customization Section */}
+          <div className="w-full max-w-6xl mx-auto px-6 py-24">
+            <h2 className="text-4xl font-bold text-center text-gray-900 dark:text-white mb-4">
+              Fine-Tune Every Detail
+            </h2>
+            <p className="text-center text-gray-600 dark:text-gray-400 mb-16 max-w-2xl mx-auto">
+              Customize the voice output with precise control over how your dubbed content sounds
+            </p>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Tone */}
+              <div className="p-6 rounded-2xl bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 hover:shadow-lg transition-shadow">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">Tone</h3>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Set the overall tone: professional, casual, formal, friendly, or authoritative</p>
+              </div>
+
+              {/* Emotion */}
+              <div className="p-6 rounded-2xl bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 hover:shadow-lg transition-shadow">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">Emotion</h3>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Convey the right feeling: excited, calm, serious, enthusiastic, or neutral</p>
+              </div>
+
+              {/* Style */}
+              <div className="p-6 rounded-2xl bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 hover:shadow-lg transition-shadow">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">Style</h3>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Choose delivery style: narrative, conversational, instructional, or dramatic</p>
+              </div>
+
+              {/* Pace */}
+              <div className="p-6 rounded-2xl bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 hover:shadow-lg transition-shadow">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">Pace</h3>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Control speaking speed: slow, moderate, fast, or match original timing</p>
+              </div>
+
+              {/* Intonation */}
+              <div className="p-6 rounded-2xl bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 hover:shadow-lg transition-shadow">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">Intonation</h3>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Adjust pitch variation for natural, expressive, or monotone delivery</p>
+              </div>
+
+              {/* Emphasis */}
+              <div className="p-6 rounded-2xl bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 hover:shadow-lg transition-shadow">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15.536a5 5 0 001.414 1.414m2.828-9.9a9 9 0 012.728-2.728" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">Emphasis</h3>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Highlight key words and phrases for impactful delivery</p>
+              </div>
+
+              {/* Voice */}
+              <div className="p-6 rounded-2xl bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 hover:shadow-lg transition-shadow">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">Voice</h3>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Select from 13 premium AI voices with distinct characteristics</p>
+              </div>
+
+              {/* Tempo */}
+              <div className="p-6 rounded-2xl bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 hover:shadow-lg transition-shadow">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">Tempo</h3>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Fine-tune rhythm and timing to match your video perfectly</p>
               </div>
             </div>
           </div>
@@ -198,7 +331,7 @@ export function LandingPage() {
           {/* About Section */}
           <div className="w-full max-w-5xl mx-auto px-6 py-16">
             <div className="rounded-2xl bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 p-8 overflow-hidden">
-              <div className="flex flex-col md:flex-row gap-8 items-center">
+              <div className="flex flex-col md:flex-row gap-8 items-start">
                 {/* Image on the left */}
                 <div className="w-full md:w-2/5 flex-shrink-0">
                   <div className="relative rounded-xl overflow-hidden shadow-lg">
@@ -225,13 +358,17 @@ export function LandingPage() {
                   </div>
                 </div>
                 {/* Text on the right */}
-                <div className="flex-1 text-center md:text-left">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                <div className="flex-1 text-center md:text-left md:pt-8">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-10">
                     Create High-Quality Dubbing for Your Videos
                   </h2>
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
                     Bobber VOX is designed to help content creators, educators, and businesses reach global audiences
                     by providing professional-quality video dubbing powered by cutting-edge AI technology.
+                  </p>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Whether you're localizing tutorials, translating interviews, or making your content accessible
+                    in multiple languages, our AI-powered workflow makes it fast and easy.
                   </p>
                 </div>
               </div>
@@ -258,9 +395,6 @@ export function LandingPage() {
 
           {/* Pricing Section */}
           <div className="w-full max-w-5xl mx-auto px-6 py-16">
-            <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-8">
-              Pricing
-            </h2>
             <div className="rounded-2xl bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-white/50 dark:border-white/10 p-8">
               <div className="text-center mb-6">
                 <span className="text-4xl font-bold text-gray-900 dark:text-white">Free</span>
