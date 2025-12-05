@@ -1,12 +1,16 @@
 import {
+  ArrowRightOnRectangleIcon,
   ChevronDownIcon,
   Cog6ToothIcon,
   FolderIcon,
 } from "@heroicons/react/24/outline";
 import { Disclosure, DisclosureButton, DisclosurePanel } from "@headlessui/react";
-import { NavLink } from "react-router-dom";
+import { signOut } from "firebase/auth";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useProjects } from "../../features/projects/api";
+import { auth } from "../../lib/firebase";
 import { cn } from "../../lib/styles";
+import { useAuthStore } from "../../stores/authStore";
 
 const navLinkStyles = {
   base: "flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors",
@@ -16,10 +20,18 @@ const navLinkStyles = {
 
 export function Sidebar() {
   const { data: projects } = useProjects();
+  const { user, clearAuth } = useAuthStore();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut(auth);
+    clearAuth();
+    navigate("/login");
+  };
 
   return (
-    <aside className="w-64 flex-shrink-0 border-r border-white/50 dark:border-white/10 bg-white/50 dark:bg-white/5 backdrop-blur-xl overflow-y-auto">
-      <nav className="p-4 space-y-2">
+    <aside className="w-64 flex-shrink-0 border-r border-white/50 dark:border-white/10 bg-white/50 dark:bg-white/5 backdrop-blur-xl overflow-y-auto flex flex-col">
+      <nav className="p-4 space-y-2 flex-1">
         <Disclosure defaultOpen>
           {({ open }) => (
             <>
@@ -76,6 +88,41 @@ export function Sidebar() {
           Settings
         </NavLink>
       </nav>
+
+      {/* User section */}
+      {user && (
+        <div className="p-4 border-t border-white/50 dark:border-white/10">
+          <div className="flex items-center gap-3">
+            {user.photoURL ? (
+              <img
+                src={user.photoURL}
+                alt={user.displayName || "User"}
+                className="w-8 h-8 rounded-full"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white text-sm font-medium">
+                {(user.displayName || user.email || "U")[0].toUpperCase()}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                {user.displayName || "User"}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                {user.email}
+              </p>
+            </div>
+            <button
+              onClick={handleSignOut}
+              className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+              title="Sign out"
+            >
+              <ArrowRightOnRectangleIcon className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
     </aside>
   );
 }

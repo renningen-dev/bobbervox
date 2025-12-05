@@ -17,6 +17,8 @@
     "@hookform/resolvers": "^5.2.2",
     "@tanstack/react-query": "^5.90.12",
     "@wavesurfer/react": "^1.0.12",
+    "firebase": "^10.14.1",
+    "firebaseui": "^6.1.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-dropzone": "^14.3.8",

@@ -4,3 +4,82 @@
 body {
   @apply bg-gray-50 text-gray-900 antialiased;
 }
+
+/* FirebaseUI theme overrides */
+.firebase-ui-container .firebaseui-container {
+  background: transparent !important;
+  max-width: none !important;
+}
+
+.firebase-ui-container .firebaseui-card-content,
+.firebase-ui-container .firebaseui-card-footer {
+  padding: 0 !important;
+}
+
+.firebase-ui-container .mdl-button--raised.mdl-button--colored {
+  background-color: #4f46e5 !important;
+}
+
+.firebase-ui-container .mdl-button--raised.mdl-button--colored:hover {
+  background-color: #4338ca !important;
+}
+
+.firebase-ui-container .firebaseui-idp-button {
+  max-width: none !important;
+  border-radius: 0.75rem !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
+}
+
+/* Light mode button styles */
+.firebase-ui-container .firebaseui-idp-google {
+  background-color: #fff !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+.firebase-ui-container .firebaseui-idp-google:hover {
+  background-color: #f9fafb !important;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1) !important;
+}
+
+.firebase-ui-container .firebaseui-idp-github {
+  background-color: #24292f !important;
+  border: 1px solid transparent !important;
+}
+
+.firebase-ui-container .firebaseui-idp-github:hover {
+  background-color: #32383f !important;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1) !important;
+}
+
+/* Dark mode button styles */
+.dark .firebase-ui-container .firebaseui-idp-google {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.dark .firebase-ui-container .firebaseui-idp-google:hover {
+  background-color: #fff !important;
+}
+
+.dark .firebase-ui-container .firebaseui-idp-github {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.dark .firebase-ui-container .firebaseui-idp-github:hover {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.dark .firebase-ui-container .firebaseui-idp-github .firebaseui-idp-text {
+  color: #fff !important;
+}
+
+.firebase-ui-container .firebaseui-idp-text {
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+}
+
+.firebase-ui-container .firebaseui-idp-icon-wrapper {
+  padding: 10px !important;
+}
