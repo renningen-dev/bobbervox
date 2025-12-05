@@ -193,28 +193,6 @@ export function WaveformPlayer({ projectId, audioUrl, segments = [] }: WaveformP
         onToggleShowSegments={() => setShowAllSegments(!showAllSegments)}
       />
 
-      {/* Segments legend */}
-      {segments.length > 0 && (
-        <div className="mt-4 pt-4 border-t border-gray-100">
-          <h4 className="text-sm font-medium text-gray-700 mb-2">
-            Segments ({segments.length})
-          </h4>
-          <div className="flex flex-wrap gap-2">
-            {segments.map((segment) => (
-              <button
-                key={segment.id}
-                onClick={() => {
-                  setSelectedRegionId(segment.id);
-                  wavesurfer.seekTo(segment.start_time);
-                }}
-                className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200"
-              >
-                {formatTime(segment.start_time)} - {formatTime(segment.end_time)}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

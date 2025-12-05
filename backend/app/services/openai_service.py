@@ -14,7 +14,21 @@ from app.utils.exceptions import ExternalAPIError, ProcessingError
 logger = logging.getLogger(__name__)
 
 # Available TTS voices
-TTS_VOICES = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
+TTS_VOICES = [
+    "alloy",
+    "ash",
+    "ballad",
+    "cedar",
+    "coral",
+    "echo",
+    "fable",
+    "marin",
+    "nova",
+    "onyx",
+    "sage",
+    "shimmer",
+    "verse",
+]
 
 AUDIO_ANALYSIS_SYSTEM_PROMPT = """You are an audio analysis assistant specialized in outdoor/rural environments.
 The audio is from a fishing video. Your task is to:

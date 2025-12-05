@@ -86,11 +86,18 @@ export interface UpdateAnalysisRequest {
 
 export const TTS_VOICES = [
   "alloy",
+  "ash",
+  "ballad",
+  "cedar",
+  "coral",
   "echo",
   "fable",
-  "onyx",
+  "marin",
   "nova",
+  "onyx",
+  "sage",
   "shimmer",
+  "verse",
 ] as const;
 
 export type TTSVoice = (typeof TTS_VOICES)[number];
