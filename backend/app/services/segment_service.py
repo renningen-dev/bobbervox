@@ -174,6 +174,7 @@ class SegmentService:
         self,
         segment: Segment,
         voice: str = "alloy",
+        instructions: Optional[str] = None,
         openai: Optional[OpenAIService] = None,
     ) -> Segment:
         """Generate TTS audio for segment."""
@@ -202,6 +203,7 @@ class SegmentService:
                 text=segment.translated_text,
                 voice=voice,
                 output_path=output_path,
+                instructions=instructions,
             )
 
             relative_path = str(output_path.relative_to(self.settings.projects_dir))

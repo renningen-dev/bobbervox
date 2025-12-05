@@ -76,6 +76,15 @@ export interface CreateSegmentRequest {
 
 export interface TTSRequest {
   voice: string;
+  // Analysis fields for TTS instructions
+  tone?: string;
+  emotion?: string;
+  style?: string;
+  pace?: string;
+  intonation?: string;
+  tempo?: string;
+  emphasis?: string[];
+  pause_before?: string[];
 }
 
 export interface UpdateTranslationRequest {

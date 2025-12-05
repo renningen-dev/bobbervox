@@ -218,10 +218,10 @@ async def generate_tts(
     segment_service: Annotated[SegmentService, Depends(get_segment_service)],
     current_user: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> SegmentRead:
-    """Generate TTS audio for segment using OpenAI tts-1-hd."""
+    """Generate TTS audio for segment using OpenAI gpt-4o-mini-tts with instructions."""
     segment = await segment_service.get_by_id(segment_id)
-    # Verify user owns the project
-    await project_service.get_by_id(segment.project_id, current_user.user_id)
+    # Verify user owns the project and get target language
+    project = await project_service.get_by_id(segment.project_id, current_user.user_id)
 
     # Get user settings for API key
     user_settings = await settings_service.get_settings(current_user.user_id)
@@ -231,5 +231,17 @@ async def generate_tts(
     # Create OpenAI service with API key
     openai_service = OpenAIService(api_key=user_settings.openai_api_key)
 
-    segment = await segment_service.generate_tts(segment, voice=data.voice, openai=openai_service)
+    # Set target language from project if not provided in request
+    if not data.target_language:
+        data.target_language = project.target_language
+
+    # Build TTS instructions from analysis fields
+    instructions = data.build_instructions()
+
+    segment = await segment_service.generate_tts(
+        segment,
+        voice=data.voice,
+        instructions=instructions if instructions else None,
+        openai=openai_service,
+    )
     return SegmentRead.model_validate(segment)

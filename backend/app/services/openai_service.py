@@ -155,13 +155,15 @@ class OpenAIService:
         text: str,
         voice: str = "alloy",
         output_path: Optional[Path] = None,
+        instructions: Optional[str] = None,
     ) -> Path:
-        """Generate TTS audio using OpenAI tts-1-hd.
+        """Generate TTS audio using OpenAI gpt-4o-mini-tts.
 
         Args:
             text: The text to convert to speech
-            voice: Voice to use (alloy, echo, fable, onyx, nova, shimmer)
+            voice: Voice to use (alloy, ash, ballad, coral, echo, fable, etc.)
             output_path: Where to save the output file
+            instructions: Optional instructions for tone, style, emotion, etc.
 
         Returns:
             Path to the generated MP3 file
@@ -178,12 +180,20 @@ class OpenAIService:
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         try:
-            response = await self.client.audio.speech.create(
-                model="tts-1-hd",
-                voice=voice,
-                input=text,
-                response_format="mp3",
-            )
+            # Build request params
+            params: dict[str, Any] = {
+                "model": "gpt-4o-mini-tts",
+                "voice": voice,
+                "input": text,
+                "response_format": "mp3",
+            }
+
+            # Add instructions if provided
+            if instructions and instructions.strip():
+                params["instructions"] = instructions
+                logger.info(f"TTS instructions: {instructions}")
+
+            response = await self.client.audio.speech.create(**params)
         except Exception as e:
             logger.error(f"OpenAI API error during TTS generation: {e}")
             raise ExternalAPIError(f"Failed to generate TTS: {str(e)}") from e

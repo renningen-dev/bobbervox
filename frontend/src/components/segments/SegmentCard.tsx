@@ -111,6 +111,7 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
   }, [segment.audio_file, projectId]);
 
   // Fetch TTS audio with authentication
+  // Include segment.updated_at to re-fetch when TTS is regenerated (same filename, new content)
   useEffect(() => {
     if (!segment.tts_result_file) {
       setTtsBlobUrl(null);
@@ -120,11 +121,19 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
     let cancelled = false;
     setIsLoadingTts(true);
 
+    // Revoke old blob URL before fetching new one
+    if (ttsBlobUrl) {
+      URL.revokeObjectURL(ttsBlobUrl);
+      setTtsBlobUrl(null);
+    }
+
     const filename = segment.tts_result_file.split("/").pop() || segment.tts_result_file;
     fetchAuthenticatedAudio(projectId, "output", filename)
       .then((blobUrl) => {
         if (!cancelled) {
           setTtsBlobUrl(blobUrl);
+        } else {
+          URL.revokeObjectURL(blobUrl);
         }
       })
       .catch(() => {
@@ -139,7 +148,8 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
     return () => {
       cancelled = true;
     };
-  }, [segment.tts_result_file, projectId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [segment.tts_result_file, segment.updated_at, projectId]);
 
   // Local state for editable analysis fields
   const [localAnalysis, setLocalAnalysis] = useState<{
@@ -185,9 +195,20 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
 
   const handleGenerateTTS = async () => {
     try {
+      // Send analysis fields as TTS instructions
       await generateTTS.mutateAsync({
         segmentId: segment.id,
-        data: { voice: selectedVoice },
+        data: {
+          voice: selectedVoice,
+          tone: currentAnalysis.tone || undefined,
+          emotion: currentAnalysis.emotion || undefined,
+          style: currentAnalysis.style || undefined,
+          pace: currentAnalysis.pace || undefined,
+          intonation: currentAnalysis.intonation || undefined,
+          tempo: currentAnalysis.tempo || undefined,
+          emphasis: toStringArray(currentAnalysis.emphasis),
+          pause_before: toStringArray(currentAnalysis.pause_before),
+        },
       });
       toast.success("TTS audio generated");
     } catch (error) {

@@ -88,6 +88,17 @@ TTS_VOICES = [
 
 class TTSRequest(BaseModel):
     voice: str = "alloy"
+    # Analysis fields for TTS instructions
+    tone: Optional[str] = None
+    emotion: Optional[str] = None
+    style: Optional[str] = None
+    pace: Optional[str] = None
+    intonation: Optional[str] = None
+    tempo: Optional[str] = None
+    emphasis: list[str] = []
+    pause_before: list[str] = []
+    # Target language for TTS
+    target_language: Optional[str] = None
 
     @field_validator("voice")
     @classmethod
@@ -95,3 +106,29 @@ class TTSRequest(BaseModel):
         if v not in TTS_VOICES:
             raise ValueError(f"Invalid voice. Must be one of: {TTS_VOICES}")
         return v
+
+    def build_instructions(self) -> str:
+        """Build TTS instructions from analysis fields."""
+        parts = []
+
+        if self.target_language:
+            parts.append(f"Speak in {self.target_language}.")
+
+        if self.tone:
+            parts.append(f"Tone: {self.tone}.")
+        if self.emotion:
+            parts.append(f"Emotion: {self.emotion}.")
+        if self.style:
+            parts.append(f"Style: {self.style}.")
+        if self.pace:
+            parts.append(f"Pace: {self.pace}.")
+        if self.intonation:
+            parts.append(f"Intonation: {self.intonation}.")
+        if self.tempo:
+            parts.append(f"Tempo: {self.tempo}.")
+        if self.emphasis:
+            parts.append(f"Emphasize these words: {', '.join(self.emphasis)}.")
+        if self.pause_before:
+            parts.append(f"Pause before these words: {', '.join(self.pause_before)}.")
+
+        return " ".join(parts) if parts else ""
