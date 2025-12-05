@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useCreateSegment } from "../../features/segments/api";
+import { useSettings } from "../../features/settings/api";
 import { useWaveSurfer } from "../../hooks/useWaveSurfer";
 import { cn } from "../../lib/styles";
 import { useEditorStore } from "../../stores/editorStore";
@@ -30,6 +31,9 @@ export function WaveformPlayer({ projectId, audioUrl, segments = [] }: WaveformP
   const setSelectedRegionId = useEditorStore((s) => s.setSelectedRegionId);
   const pendingRegion = useEditorStore((s) => s.pendingRegion);
   const hoveredSegmentId = useEditorStore((s) => s.hoveredSegmentId);
+
+  const { data: settings } = useSettings();
+  const hasOpenAIKey = settings?.openai_api_key_set ?? false;
 
   const createSegment = useCreateSegment();
 
@@ -192,6 +196,7 @@ export function WaveformPlayer({ projectId, audioUrl, segments = [] }: WaveformP
         hasPendingRegion={pendingRegion !== null}
         isCreatingSegment={createSegment.isPending}
         showAllSegments={showAllSegments}
+        hasOpenAIKey={hasOpenAIKey}
         onPlayPause={wavesurfer.playPause}
         onZoom={handleZoom}
         onCreateSegment={handleCreateSegment}

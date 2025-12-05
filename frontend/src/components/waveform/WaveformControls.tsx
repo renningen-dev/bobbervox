@@ -1,6 +1,7 @@
 import {
   EyeIcon,
   EyeSlashIcon,
+  ExclamationTriangleIcon,
   MagnifyingGlassMinusIcon,
   MagnifyingGlassPlusIcon,
   PauseIcon,
@@ -16,6 +17,7 @@ interface WaveformControlsProps {
   hasPendingRegion: boolean;
   isCreatingSegment: boolean;
   showAllSegments: boolean;
+  hasOpenAIKey: boolean;
   onPlayPause: () => void;
   onZoom: (level: number) => void;
   onCreateSegment: () => void;
@@ -33,6 +35,7 @@ export function WaveformControls({
   hasPendingRegion,
   isCreatingSegment,
   showAllSegments,
+  hasOpenAIKey,
   onPlayPause,
   onZoom,
   onCreateSegment,
@@ -115,15 +118,31 @@ export function WaveformControls({
       </div>
 
       {/* Create segment button */}
-      <button
-        onClick={onCreateSegment}
-        disabled={!hasPendingRegion || isCreatingSegment}
-        className={cn(buttonStyles.base, buttonStyles.primary)}
-        title="Create segment from selection"
-      >
-        <PlusIcon className="w-4 h-4 mr-1" />
-        Create Segment
-      </button>
+      <div className="relative group">
+        <button
+          onClick={onCreateSegment}
+          disabled={!hasPendingRegion || isCreatingSegment || !hasOpenAIKey}
+          className={cn(buttonStyles.base, buttonStyles.primary)}
+          title={hasOpenAIKey ? "Create segment from selection" : "OpenAI API key required"}
+        >
+          {!hasOpenAIKey && (
+            <ExclamationTriangleIcon className="w-4 h-4 mr-1 text-amber-300" />
+          )}
+          {hasOpenAIKey && <PlusIcon className="w-4 h-4 mr-1" />}
+          Create Segment
+        </button>
+
+        {/* Tooltip when no API key */}
+        {!hasOpenAIKey && (
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 text-xs text-white bg-gray-900 dark:bg-gray-700 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+            <div className="flex items-center gap-2">
+              <ExclamationTriangleIcon className="w-4 h-4 text-amber-400" />
+              <span>Configure OpenAI API key in Settings</span>
+            </div>
+            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900 dark:border-t-gray-700" />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
