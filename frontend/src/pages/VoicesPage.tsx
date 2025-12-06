@@ -1,5 +1,5 @@
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
-import { MicrophoneIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { ArrowDownTrayIcon, MicrophoneIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useCallback, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
@@ -162,6 +162,26 @@ export function VoicesPage() {
     return `${getApiBaseUrl()}/voices/${voiceId}/audio?token=${token}`;
   };
 
+  // Download voice audio file
+  const handleDownload = async (voiceId: string, voiceName: string) => {
+    try {
+      const url = getVoiceAudioUrl(voiceId);
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Download failed");
+      const blob = await response.blob();
+      const downloadUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = downloadUrl;
+      a.download = `${voiceName}.wav`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(downloadUrl);
+    } catch {
+      toast.error("Failed to download voice");
+    }
+  };
+
   if (!isChatterbox) {
     return (
       <div className="max-w-3xl">
@@ -228,12 +248,22 @@ export function VoicesPage() {
                       {new Date(voice.created_at).toLocaleDateString()}
                     </p>
                   </div>
-                  <button
-                    onClick={() => setDeleteVoiceId(voice.id)}
-                    className="text-gray-400 hover:text-red-500 p-1 -mt-1 -mr-1 flex-shrink-0"
-                  >
-                    <TrashIcon className="w-5 h-5" />
-                  </button>
+                  <div className="flex items-center gap-1 -mt-1 -mr-1 flex-shrink-0">
+                    <button
+                      onClick={() => handleDownload(voice.id, voice.name)}
+                      className="text-gray-400 hover:text-indigo-500 p-1"
+                      title="Download"
+                    >
+                      <ArrowDownTrayIcon className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => setDeleteVoiceId(voice.id)}
+                      className="text-gray-400 hover:text-red-500 p-1"
+                      title="Delete"
+                    >
+                      <TrashIcon className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
                 <AudioPlayer src={getVoiceAudioUrl(voice.id)} />
               </div>
