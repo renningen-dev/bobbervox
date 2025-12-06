@@ -122,7 +122,7 @@ ALL_TTS_VOICES = OPENAI_TTS_VOICES + CHATTERBOX_TTS_VOICES
 
 class TTSRequest(BaseModel):
     voice: str = "alloy"
-    # Analysis fields for TTS instructions
+    # Analysis fields for TTS instructions (OpenAI)
     tone: Optional[str] = None
     emotion: Optional[str] = None
     style: Optional[str] = None
@@ -133,6 +133,11 @@ class TTSRequest(BaseModel):
     pause_before: list[str] = []
     # Target language for TTS
     target_language: Optional[str] = None
+    # ChatterBox-specific parameters
+    temperature: Optional[float] = None
+    exaggeration: Optional[float] = None
+    cfg_weight: Optional[float] = None
+    speed_factor: Optional[float] = None
 
     @field_validator("voice")
     @classmethod
@@ -145,7 +150,7 @@ class TTSRequest(BaseModel):
         return v
 
     def build_instructions(self) -> str:
-        """Build TTS instructions from analysis fields."""
+        """Build TTS instructions from analysis fields (for OpenAI TTS)."""
         parts = []
 
         if self.target_language:
@@ -169,3 +174,25 @@ class TTSRequest(BaseModel):
             parts.append(f"Pause before these words: {', '.join(self.pause_before)}.")
 
         return " ".join(parts) if parts else ""
+
+
+class SegmentUpdateChatterBoxParams(BaseModel):
+    """Update ChatterBox TTS parameters for a segment."""
+
+    temperature: Optional[float] = None
+    exaggeration: Optional[float] = None
+    cfg_weight: Optional[float] = None
+
+    @field_validator("temperature")
+    @classmethod
+    def validate_temperature(cls, v: Optional[float]) -> Optional[float]:
+        if v is not None and (v < 0.1 or v > 1.0):
+            raise ValueError("temperature must be between 0.1 and 1.0")
+        return v
+
+    @field_validator("exaggeration", "cfg_weight")
+    @classmethod
+    def validate_zero_to_one(cls, v: Optional[float]) -> Optional[float]:
+        if v is not None and (v < 0.0 or v > 1.0):
+            raise ValueError("value must be between 0.0 and 1.0")
+        return v

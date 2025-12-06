@@ -92,11 +92,14 @@ class ChatterBoxService:
         output_path: Optional[Path] = None,
         speed: float = 1.0,
         custom_voice_path: Optional[str] = None,
+        temperature: Optional[float] = None,
+        exaggeration: Optional[float] = None,
+        cfg_weight: Optional[float] = None,
     ) -> Path:
         """Generate TTS audio using ChatterBox server.
 
-        ChatterBox uses OpenAI-compatible API at /v1/audio/speech.
-        Voice should be a .wav file name from the voices/ directory.
+        Uses the custom /tts endpoint when ChatterBox params are provided,
+        otherwise falls back to the OpenAI-compatible /v1/audio/speech endpoint.
 
         Args:
             text: The text to convert to speech
@@ -104,6 +107,9 @@ class ChatterBoxService:
             output_path: Where to save the output file
             speed: Speed factor (1.0 = normal)
             custom_voice_path: Absolute path to custom voice file (for voice cloning)
+            temperature: Controls randomness (0.1-1.0)
+            exaggeration: Controls emotion intensity (0.0-1.0)
+            cfg_weight: Classifier-free guidance weight (0.0-1.0)
 
         Returns:
             Path to the generated audio file
@@ -118,6 +124,7 @@ class ChatterBoxService:
 
         # Handle custom voice by uploading to ChatterBox via API
         voice_to_use = voice
+        use_clone_mode = False
 
         if custom_voice_path:
             # Create unique filename to avoid conflicts
@@ -126,23 +133,56 @@ class ChatterBoxService:
             # Upload the custom voice via ChatterBox API
             await self.upload_reference_audio(custom_voice_path, unique_name)
             voice_to_use = unique_name
+            use_clone_mode = True
         else:
             # ChatterBox expects voice as filename (with or without extension)
             # Ensure it has .wav extension for predefined voices
             if not voice.endswith((".wav", ".mp3")) and not voice.startswith("custom:"):
                 voice_to_use = f"{voice}.wav"
 
+        # Use custom /tts endpoint if ChatterBox params are provided
+        use_custom_endpoint = any(p is not None for p in [temperature, exaggeration, cfg_weight])
+
         try:
-            response = await self.client.post(
-                f"{self.base_url}/v1/audio/speech",
-                json={
-                    "model": "chatterbox",
-                    "input": text,
-                    "voice": voice_to_use,
-                    "response_format": "wav",
-                    "speed": speed,
-                },
-            )
+            if use_custom_endpoint:
+                # Use the full-featured /tts endpoint
+                request_data = {
+                    "text": text,
+                    "voice_mode": "clone" if use_clone_mode else "predefined",
+                    "output_format": "wav",
+                    "speed_factor": speed,
+                }
+
+                if use_clone_mode:
+                    request_data["reference_audio_filename"] = voice_to_use
+                else:
+                    request_data["predefined_voice_id"] = voice_to_use
+
+                # Add ChatterBox-specific parameters
+                if temperature is not None:
+                    request_data["temperature"] = temperature
+                if exaggeration is not None:
+                    request_data["exaggeration"] = exaggeration
+                if cfg_weight is not None:
+                    request_data["cfg_weight"] = cfg_weight
+
+                logger.info(f"ChatterBox /tts request: {request_data}")
+                response = await self.client.post(
+                    f"{self.base_url}/tts",
+                    json=request_data,
+                )
+            else:
+                # Use OpenAI-compatible endpoint for simple requests
+                response = await self.client.post(
+                    f"{self.base_url}/v1/audio/speech",
+                    json={
+                        "model": "chatterbox",
+                        "input": text,
+                        "voice": voice_to_use,
+                        "response_format": "wav",
+                        "speed": speed,
+                    },
+                )
             response.raise_for_status()
         except httpx.HTTPStatusError as e:
             logger.error(f"ChatterBox API error: {e.response.status_code} - {e.response.text}")

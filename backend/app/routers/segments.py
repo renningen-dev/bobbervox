@@ -185,19 +185,23 @@ async def analyze_segment(
     """Analyze segment audio using OpenAI gpt-4o-audio-preview.
 
     Returns segment with status 'analyzed' on success or 'error' on failure.
-    Does not raise exceptions - always returns the segment.
+    Uses ChatterBox-specific analysis (with temperature, exaggeration, cfg_weight)
+    when TTS provider is set to ChatterBox.
     """
     segment = await segment_service.get_by_id(segment_id)
 
     # Get project for language settings (also verifies ownership)
     project = await project_service.get_by_id(segment.project_id, current_user.user_id)
 
-    # Get user settings for context and API key
+    # Get user settings for context, API key, and TTS provider
     user_settings = await settings_service.get_settings(current_user.user_id)
     if not user_settings.openai_api_key:
         raise ProcessingError("OpenAI API key not configured in settings")
 
-    # Build prompts dynamically
+    # Determine if we should use ChatterBox-specific analysis
+    use_chatterbox_analysis = user_settings.tts_provider == "chatterbox"
+
+    # Build prompts dynamically (only used for standard OpenAI analysis)
     system_prompt = build_system_prompt(
         context=user_settings.context_description,
         source_language=project.source_language,
@@ -212,7 +216,11 @@ async def analyze_segment(
         user_prompt=user_prompt,
     )
 
-    segment = await segment_service.analyze_segment(segment, openai=openai_service)
+    segment = await segment_service.analyze_segment(
+        segment,
+        openai=openai_service,
+        use_chatterbox_analysis=use_chatterbox_analysis,
+    )
     return SegmentRead.model_validate(segment)
 
 
@@ -258,6 +266,10 @@ async def generate_tts(
             segment,
             voice=voice,
             custom_voice_path=custom_voice_path,
+            temperature=data.temperature,
+            exaggeration=data.exaggeration,
+            cfg_weight=data.cfg_weight,
+            speed=data.speed_factor,
         )
     else:
         # Use OpenAI TTS (default)

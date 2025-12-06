@@ -70,10 +70,11 @@ export function useDeleteSegment() {
       projectId: string;
     }) => api.delete(`/segments/${segmentId}`),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
+      // Use refetchQueries instead of invalidateQueries for immediate update
+      queryClient.refetchQueries({
         queryKey: segmentKeys.list(variables.projectId),
       });
-      queryClient.invalidateQueries({
+      queryClient.refetchQueries({
         queryKey: projectKeys.detail(variables.projectId),
       });
     },

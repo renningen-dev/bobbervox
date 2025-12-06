@@ -28,6 +28,7 @@ import { AudioPlayer } from "../ui/AudioPlayer";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
 import { Spinner } from "../ui/Spinner";
 import { VoiceListbox } from "../ui/VoiceListbox";
+import { ChatterBoxParams } from "./ChatterBoxParams";
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof ApiError && error.data) {
@@ -189,6 +190,26 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
     pause_before?: string[];
   } | null>(null);
 
+  // Local state for ChatterBox params (initialized from analysis_json)
+  const [chatterBoxParams, setChatterBoxParams] = useState({
+    temperature: 0.8,
+    exaggeration: 0.8,
+    cfgWeight: 0.5,
+    speedFactor: 1.0,
+  });
+
+  // Initialize ChatterBox params from analysis_json when available
+  useEffect(() => {
+    if (segment.analysis_json) {
+      setChatterBoxParams({
+        temperature: segment.analysis_json.temperature ?? 0.8,
+        exaggeration: segment.analysis_json.exaggeration ?? 0.8,
+        cfgWeight: segment.analysis_json.cfg_weight ?? 0.5,
+        speedFactor: segment.analysis_json.speed_factor ?? 1.0,
+      });
+    }
+  }, [segment.analysis_json]);
+
   const currentAnalysis = {
     tone: localAnalysis?.tone ?? segment.analysis_json?.tone ?? "",
     emotion: localAnalysis?.emotion ?? segment.analysis_json?.emotion ?? "",
@@ -220,20 +241,30 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
 
   const handleGenerateTTS = async () => {
     try {
-      // Send analysis fields as TTS instructions
+      // Build request data based on TTS provider
+      const data = ttsProvider === "chatterbox"
+        ? {
+            voice: selectedVoice,
+            temperature: chatterBoxParams.temperature,
+            exaggeration: chatterBoxParams.exaggeration,
+            cfg_weight: chatterBoxParams.cfgWeight,
+            speed_factor: chatterBoxParams.speedFactor,
+          }
+        : {
+            voice: selectedVoice,
+            tone: currentAnalysis.tone || undefined,
+            emotion: currentAnalysis.emotion || undefined,
+            style: currentAnalysis.style || undefined,
+            pace: currentAnalysis.pace || undefined,
+            intonation: currentAnalysis.intonation || undefined,
+            tempo: currentAnalysis.tempo || undefined,
+            emphasis: toStringArray(currentAnalysis.emphasis),
+            pause_before: toStringArray(currentAnalysis.pause_before),
+          };
+
       await generateTTS.mutateAsync({
         segmentId: segment.id,
-        data: {
-          voice: selectedVoice,
-          tone: currentAnalysis.tone || undefined,
-          emotion: currentAnalysis.emotion || undefined,
-          style: currentAnalysis.style || undefined,
-          pace: currentAnalysis.pace || undefined,
-          intonation: currentAnalysis.intonation || undefined,
-          tempo: currentAnalysis.tempo || undefined,
-          emphasis: toStringArray(currentAnalysis.emphasis),
-          pause_before: toStringArray(currentAnalysis.pause_before),
-        },
+        data,
       });
       toast.success("TTS audio generated");
     } catch (error) {
@@ -455,89 +486,108 @@ export function SegmentCard({ segment, projectId }: SegmentCardProps) {
                       <span className="text-gray-800 dark:text-gray-200">{segment.original_transcription}</span>
                     </div>
                   )}
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block font-medium text-gray-600 dark:text-gray-400 mb-1">Tone</label>
-                      <input
-                        type="text"
-                        value={currentAnalysis.tone}
-                        onChange={(e) => updateAnalysisField("tone", e.target.value)}
-                        className="w-full px-3 py-1.5 text-sm rounded-lg bg-gray-200/60 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white/25"
+
+                  {/* ChatterBox params (sliders) - show when using ChatterBox */}
+                  {ttsProvider === "chatterbox" ? (
+                    <div className="pt-2">
+                      <ChatterBoxParams
+                        temperature={chatterBoxParams.temperature}
+                        exaggeration={chatterBoxParams.exaggeration}
+                        cfgWeight={chatterBoxParams.cfgWeight}
+                        speedFactor={chatterBoxParams.speedFactor}
+                        onTemperatureChange={(v) => setChatterBoxParams((p) => ({ ...p, temperature: v }))}
+                        onExaggerationChange={(v) => setChatterBoxParams((p) => ({ ...p, exaggeration: v }))}
+                        onCfgWeightChange={(v) => setChatterBoxParams((p) => ({ ...p, cfgWeight: v }))}
+                        onSpeedFactorChange={(v) => setChatterBoxParams((p) => ({ ...p, speedFactor: v }))}
+                        disabled={isProcessing}
                       />
                     </div>
-                    <div>
-                      <label className="block font-medium text-gray-600 dark:text-gray-400 mb-1">Emotion</label>
-                      <input
-                        type="text"
-                        value={currentAnalysis.emotion}
-                        onChange={(e) => updateAnalysisField("emotion", e.target.value)}
-                        className="w-full px-3 py-1.5 text-sm rounded-lg bg-gray-200/60 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white/25"
-                      />
+                  ) : (
+                    /* OpenAI voice instruction fields */
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block font-medium text-gray-600 dark:text-gray-400 mb-1">Tone</label>
+                        <input
+                          type="text"
+                          value={currentAnalysis.tone}
+                          onChange={(e) => updateAnalysisField("tone", e.target.value)}
+                          className="w-full px-3 py-1.5 text-sm rounded-lg bg-gray-200/60 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white/25"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-medium text-gray-600 dark:text-gray-400 mb-1">Emotion</label>
+                        <input
+                          type="text"
+                          value={currentAnalysis.emotion}
+                          onChange={(e) => updateAnalysisField("emotion", e.target.value)}
+                          className="w-full px-3 py-1.5 text-sm rounded-lg bg-gray-200/60 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white/25"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-medium text-gray-600 dark:text-gray-400 mb-1">Style</label>
+                        <input
+                          type="text"
+                          value={currentAnalysis.style}
+                          onChange={(e) => updateAnalysisField("style", e.target.value)}
+                          className="w-full px-3 py-1.5 text-sm rounded-lg bg-gray-200/60 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white/25"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-medium text-gray-600 dark:text-gray-400 mb-1">Pace</label>
+                        <input
+                          type="text"
+                          value={currentAnalysis.pace}
+                          onChange={(e) => updateAnalysisField("pace", e.target.value)}
+                          className="w-full px-3 py-1.5 text-sm rounded-lg bg-gray-200/60 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white/25"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-medium text-gray-600 dark:text-gray-400 mb-1">Intonation</label>
+                        <input
+                          type="text"
+                          value={currentAnalysis.intonation}
+                          onChange={(e) => updateAnalysisField("intonation", e.target.value)}
+                          className="w-full px-3 py-1.5 text-sm rounded-lg bg-gray-200/60 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white/25"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-medium text-gray-600 dark:text-gray-400 mb-1">Voice</label>
+                        <input
+                          type="text"
+                          value={currentAnalysis.voice}
+                          onChange={(e) => updateAnalysisField("voice", e.target.value)}
+                          className="w-full px-3 py-1.5 text-sm rounded-lg bg-gray-200/60 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white/25"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-medium text-gray-600 dark:text-gray-400 mb-1">Tempo</label>
+                        <input
+                          type="text"
+                          value={currentAnalysis.tempo}
+                          onChange={(e) => updateAnalysisField("tempo", e.target.value)}
+                          className="w-full px-3 py-1.5 text-sm rounded-lg bg-gray-200/60 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white/25"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-medium text-gray-600 dark:text-gray-400 mb-1">Emphasis</label>
+                        <input
+                          type="text"
+                          value={emphasisText}
+                          onChange={(e) => updateArrayField("emphasis", e.target.value)}
+                          className="w-full px-3 py-1.5 text-sm rounded-lg bg-gray-200/60 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white/25"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-medium text-gray-600 dark:text-gray-400 mb-1">Pause before</label>
+                        <input
+                          type="text"
+                          value={pauseBeforeText}
+                          onChange={(e) => updateArrayField("pause_before", e.target.value)}
+                          className="w-full px-3 py-1.5 text-sm rounded-lg bg-gray-200/60 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white/25"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <label className="block font-medium text-gray-600 dark:text-gray-400 mb-1">Style</label>
-                      <input
-                        type="text"
-                        value={currentAnalysis.style}
-                        onChange={(e) => updateAnalysisField("style", e.target.value)}
-                        className="w-full px-3 py-1.5 text-sm rounded-lg bg-gray-200/60 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white/25"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-medium text-gray-600 dark:text-gray-400 mb-1">Pace</label>
-                      <input
-                        type="text"
-                        value={currentAnalysis.pace}
-                        onChange={(e) => updateAnalysisField("pace", e.target.value)}
-                        className="w-full px-3 py-1.5 text-sm rounded-lg bg-gray-200/60 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white/25"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-medium text-gray-600 dark:text-gray-400 mb-1">Intonation</label>
-                      <input
-                        type="text"
-                        value={currentAnalysis.intonation}
-                        onChange={(e) => updateAnalysisField("intonation", e.target.value)}
-                        className="w-full px-3 py-1.5 text-sm rounded-lg bg-gray-200/60 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white/25"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-medium text-gray-600 dark:text-gray-400 mb-1">Voice</label>
-                      <input
-                        type="text"
-                        value={currentAnalysis.voice}
-                        onChange={(e) => updateAnalysisField("voice", e.target.value)}
-                        className="w-full px-3 py-1.5 text-sm rounded-lg bg-gray-200/60 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white/25"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-medium text-gray-600 dark:text-gray-400 mb-1">Tempo</label>
-                      <input
-                        type="text"
-                        value={currentAnalysis.tempo}
-                        onChange={(e) => updateAnalysisField("tempo", e.target.value)}
-                        className="w-full px-3 py-1.5 text-sm rounded-lg bg-gray-200/60 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white/25"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-medium text-gray-600 dark:text-gray-400 mb-1">Emphasis</label>
-                      <input
-                        type="text"
-                        value={emphasisText}
-                        onChange={(e) => updateArrayField("emphasis", e.target.value)}
-                        className="w-full px-3 py-1.5 text-sm rounded-lg bg-gray-200/60 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white/25"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-medium text-gray-600 dark:text-gray-400 mb-1">Pause before</label>
-                      <input
-                        type="text"
-                        value={pauseBeforeText}
-                        onChange={(e) => updateArrayField("pause_before", e.target.value)}
-                        className="w-full px-3 py-1.5 text-sm rounded-lg bg-gray-200/60 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white/25"
-                      />
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
             )}

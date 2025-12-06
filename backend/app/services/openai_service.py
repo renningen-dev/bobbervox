@@ -50,6 +50,28 @@ AUDIO_ANALYSIS_USER_PROMPT = """Output everything in JSON format exactly like th
 
 The "emphasis" and "pause_before" arrays should contain words from the translated_text that need emphasis or pauses."""
 
+# ChatterBox-specific prompts that include TTS parameters
+CHATTERBOX_ANALYSIS_SYSTEM_PROMPT = """You are an audio analysis assistant specialized in outdoor/rural environments.
+The audio is from a fishing video. Your task is to:
+
+1. Transcribe the uploaded audio accurately.
+2. Translate the text into English.
+3. Analyze the speaker's delivery to determine optimal TTS synthesis parameters:
+   - temperature: Controls randomness/creativity (0-1.5, default 0.8). Higher for more expressive, lower for more consistent.
+   - exaggeration: Controls emotional intensity (0-2.0, default 0.8). Higher for more dramatic delivery.
+   - cfg_weight: Classifier-free guidance weight (0-2.0, default 0.5). Lower values = more creative, higher values = closer to reference voice.
+
+Guidelines for parameters:
+- Calm, neutral speech: temperature=0.5-0.7, exaggeration=0.4-0.6, cfg_weight=0.5-0.8
+- Excited, energetic speech: temperature=0.9-1.2, exaggeration=1.0-1.5, cfg_weight=0.3-0.5
+- Whispered or quiet: temperature=0.3-0.5, exaggeration=0.2-0.5, cfg_weight=0.6-1.0
+- Dramatic storytelling: temperature=0.7-1.0, exaggeration=0.8-1.2, cfg_weight=0.4-0.6"""
+
+CHATTERBOX_ANALYSIS_USER_PROMPT = """Output everything in JSON format exactly like this:
+{ "transcription": "...", "translated_text": "...", "tone": "...", "emotion": "...", "style": "...", "temperature": 0.8, "exaggeration": 0.8, "cfg_weight": 0.5 }
+
+Parameter ranges: temperature (0-1.5), exaggeration (0-2.0), cfg_weight (0-2.0). Adjust based on speaker's delivery."""
+
 
 class OpenAIService:
     """Service for OpenAI API interactions - audio analysis and TTS."""
@@ -144,6 +166,83 @@ class OpenAIService:
 
             logger.info(f"Parsing JSON: {json_str!r}")
             result = json.loads(json_str)
+        except (json.JSONDecodeError, IndexError) as e:
+            logger.error(f"Failed to parse OpenAI response: {content!r}")
+            raise ExternalAPIError(f"Failed to parse analysis response: {str(e)}") from e
+
+        return result
+
+    async def analyze_audio_for_chatterbox(self, audio_path: Path) -> dict[str, Any]:
+        """Analyze audio for ChatterBox TTS, returning synthesis parameters.
+
+        Args:
+            audio_path: Path to the audio file (WAV or MP3)
+
+        Returns:
+            Analysis result with transcription, translation, and ChatterBox parameters
+        """
+        if not audio_path.exists():
+            raise ProcessingError(f"Audio file not found: {audio_path}")
+
+        # Read and base64 encode the audio
+        audio_bytes = audio_path.read_bytes()
+        audio_base64 = base64.b64encode(audio_bytes).decode("utf-8")
+
+        # Validate audio format
+        suffix = audio_path.suffix.lower()
+        if suffix not in (".wav", ".mp3"):
+            raise ProcessingError(f"Unsupported audio format: {suffix}")
+
+        try:
+            response = await self.client.chat.completions.create(
+                model="gpt-4o-audio-preview",
+                modalities=["text"],
+                messages=[
+                    {"role": "system", "content": CHATTERBOX_ANALYSIS_SYSTEM_PROMPT},
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "input_audio",
+                                "input_audio": {
+                                    "data": audio_base64,
+                                    "format": suffix.lstrip("."),
+                                },
+                            },
+                            {"type": "text", "text": CHATTERBOX_ANALYSIS_USER_PROMPT},
+                        ],
+                    },
+                ],
+            )
+        except Exception as e:
+            logger.error(f"OpenAI API error during ChatterBox audio analysis: {e}")
+            raise ExternalAPIError(f"Failed to analyze audio: {str(e)}") from e
+
+        # Parse the response
+        content = response.choices[0].message.content
+        logger.info(f"OpenAI ChatterBox analysis response: {content!r}")
+
+        if not content or not content.strip():
+            raise ExternalAPIError("Empty response from OpenAI API")
+
+        try:
+            if "```json" in content:
+                json_str = content.split("```json")[1].split("```")[0].strip()
+            elif "```" in content:
+                json_str = content.split("```")[1].split("```")[0].strip()
+            else:
+                json_str = content.strip()
+
+            if not json_str:
+                raise ExternalAPIError("OpenAI returned no parseable JSON content")
+
+            result = json.loads(json_str)
+
+            # Ensure ChatterBox params are within valid ranges with defaults
+            result["temperature"] = max(0.0, min(1.5, float(result.get("temperature", 0.8))))
+            result["exaggeration"] = max(0.0, min(2.0, float(result.get("exaggeration", 0.8))))
+            result["cfg_weight"] = max(0.0, min(2.0, float(result.get("cfg_weight", 0.5))))
+
         except (json.JSONDecodeError, IndexError) as e:
             logger.error(f"Failed to parse OpenAI response: {content!r}")
             raise ExternalAPIError(f"Failed to parse analysis response: {str(e)}") from e

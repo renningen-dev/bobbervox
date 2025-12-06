@@ -137,8 +137,16 @@ class SegmentService:
         self,
         segment: Segment,
         openai: Optional[OpenAIService] = None,
+        use_chatterbox_analysis: bool = False,
     ) -> Segment:
-        """Analyze segment audio using OpenAI."""
+        """Analyze segment audio using OpenAI.
+
+        Args:
+            segment: The segment to analyze
+            openai: Optional OpenAI service instance
+            use_chatterbox_analysis: If True, use ChatterBox-specific analysis
+                that returns temperature, exaggeration, cfg_weight params
+        """
         openai_service = openai or self.openai
         if openai_service is None:
             raise ProcessingError("OpenAI service not configured")
@@ -152,7 +160,10 @@ class SegmentService:
         segment = await self.repo.update(segment, status=SegmentStatus.ANALYZING)
 
         try:
-            analysis = await openai_service.analyze_audio(audio_path)
+            if use_chatterbox_analysis:
+                analysis = await openai_service.analyze_audio_for_chatterbox(audio_path)
+            else:
+                analysis = await openai_service.analyze_audio(audio_path)
 
             segment = await self.repo.update(
                 segment,
@@ -231,6 +242,10 @@ class SegmentService:
         voice: str = "Emily.wav",
         custom_voice_path: Optional[str] = None,
         chatterbox: Optional[ChatterBoxService] = None,
+        temperature: Optional[float] = None,
+        exaggeration: Optional[float] = None,
+        cfg_weight: Optional[float] = None,
+        speed: Optional[float] = None,
     ) -> Segment:
         """Generate TTS audio for segment using ChatterBox.
 
@@ -239,6 +254,10 @@ class SegmentService:
             voice: Voice name (predefined or custom format)
             custom_voice_path: Absolute path to custom voice file (if using custom voice)
             chatterbox: Optional ChatterBox service instance
+            temperature: ChatterBox temperature (0.1-1.0)
+            exaggeration: ChatterBox exaggeration (0.0-1.0)
+            cfg_weight: ChatterBox cfg_weight (0.0-1.0)
+            speed: Speed factor (0.5-2.0, default 1.0)
         """
         chatterbox_service = chatterbox or self.chatterbox
         if chatterbox_service is None:
@@ -265,7 +284,11 @@ class SegmentService:
                 text=segment.translated_text,
                 voice=voice,
                 output_path=output_path,
+                speed=speed if speed is not None else 1.0,
                 custom_voice_path=custom_voice_path,
+                temperature=temperature,
+                exaggeration=exaggeration,
+                cfg_weight=cfg_weight,
             )
 
             relative_path = str(output_path.relative_to(self.settings.projects_dir))
