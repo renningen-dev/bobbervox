@@ -55,6 +55,11 @@ export interface AnalysisResult {
   tempo?: string;
   emphasis?: string[];
   pause_before?: string[];
+  // ChatterBox TTS parameters
+  temperature?: number;
+  exaggeration?: number;
+  cfg_weight?: number;
+  speed_factor?: number;
 }
 
 export interface CreateProjectRequest {
@@ -76,7 +81,7 @@ export interface CreateSegmentRequest {
 
 export interface TTSRequest {
   voice: string;
-  // Analysis fields for TTS instructions
+  // Analysis fields for TTS instructions (OpenAI)
   tone?: string;
   emotion?: string;
   style?: string;
@@ -85,6 +90,11 @@ export interface TTSRequest {
   tempo?: string;
   emphasis?: string[];
   pause_before?: string[];
+  // ChatterBox-specific parameters
+  temperature?: number;
+  exaggeration?: number;
+  cfg_weight?: number;
+  speed_factor?: number;
 }
 
 export interface UpdateTranslationRequest {
