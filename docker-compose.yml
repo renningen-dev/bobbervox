@@ -1,10 +1,37 @@
 services:
+  # Tailscale sidecar - provides network access to tailnet
+  # Backend uses this container's network via network_mode
+  tailscale:
+    image: tailscale/tailscale:latest
+    hostname: bobbervox
+    environment:
+      - TS_AUTHKEY=${TAILSCALE_AUTHKEY:-}
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=false
+    volumes:
+      - tailscale_state:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped
+    # Ports for backend must be here since backend uses our network
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "tailscale", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
+    depends_on:
+      - tailscale
+    network_mode: "service:tailscale"
     environment:
       - DATABASE_URL=sqlite+aiosqlite:///./data/bobbervox.db
       - PROJECTS_DIR=/app/projects
@@ -14,16 +41,13 @@ services:
       - FIREBASE_PROJECT_ID=${VITE_FIREBASE_PROJECT_ID}
       - FIREBASE_SERVICE_ACCOUNT_PATH=/app/firebase-key.json
       - HOSTNAME=${HOSTNAME:-localhost}
-      # ChatterBox - use Tailscale IP when connecting to local machine
+      # ChatterBox - use your local machine's Tailscale IP (e.g., 100.x.x.x)
       - CHATTERBOX_BASE_URL=${CHATTERBOX_BASE_URL:-http://localhost:8004}
     volumes:
       - ./firebase-key.json:/app/firebase-key.json:ro
       - backend_data:/app/data
       - projects_data:/app/projects
       - voices_data:/app/voices
-    networks:
-      - app_network
-      - tailscale_network
     restart: unless-stopped
 
   frontend:
@@ -40,45 +64,13 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - backend
+      - tailscale
     networks:
       - app_network
     restart: unless-stopped
 
-  # Optional: Tailscale for connecting to local ChatterBox
-  # Start with: docker-compose up -d tailscale
-  # Stop with: docker-compose stop tailscale
-  # Or use profile: docker-compose --profile tailscale up -d
-  tailscale:
-    image: tailscale/tailscale:latest
-    hostname: bobbervox
-    profiles:
-      - tailscale
-    environment:
-      - TS_AUTHKEY=${TAILSCALE_AUTHKEY:-}
-      - TS_STATE_DIR=/var/lib/tailscale
-      - TS_USERSPACE=true
-      - TS_ACCEPT_DNS=false
-    volumes:
-      - tailscale_state:/var/lib/tailscale
-    cap_add:
-      - NET_ADMIN
-      - SYS_MODULE
-    networks:
-      - tailscale_network
-    restart: unless-stopped
-    # Healthcheck - container stays up even if can't reach peers
-    healthcheck:
-      test: ["CMD", "tailscale", "status"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
-
 networks:
   app_network:
-    driver: bridge
-  tailscale_network:
     driver: bridge
 
 volumes:
