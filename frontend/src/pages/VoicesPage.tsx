@@ -179,77 +179,92 @@ export function VoicesPage() {
   }
 
   return (
-    <div className="max-w-3xl">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-medium text-gray-600 dark:text-gray-400">Custom Voices</h1>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setIsRecordOpen(true)}
-            className={cn(buttonStyles.base, buttonStyles.secondary)}
-          >
-            <MicrophoneIcon className="w-4 h-4 mr-1.5" />
-            Record
-          </button>
-          <button
-            onClick={() => setIsUploadOpen(true)}
-            className={cn(buttonStyles.base, buttonStyles.primary)}
-          >
-            <PlusIcon className="w-4 h-4 mr-1.5" />
-            Upload
-          </button>
-        </div>
-      </div>
-
+    <div className="h-full">
       {isLoading ? (
         <div className="flex items-center justify-center h-64">
           <Spinner size="lg" />
         </div>
       ) : voices && voices.length > 0 ? (
-        <div className="space-y-4">
-          {voices.map((voice) => (
-            <div
-              key={voice.id}
-              className={cn(
-                "rounded-xl p-4",
-                "bg-white/50 dark:bg-white/5 backdrop-blur-xl",
-                "border border-white/50 dark:border-white/10",
-                "shadow-lg shadow-black/5 dark:shadow-none"
-              )}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <h3 className="font-medium text-gray-900 dark:text-white">{voice.name}</h3>
-                  {voice.description && (
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                      {voice.description}
+        <>
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-xl font-medium text-gray-600 dark:text-gray-400">Custom Voices</h1>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setIsRecordOpen(true)}
+                className={cn(buttonStyles.base, buttonStyles.secondary)}
+              >
+                <MicrophoneIcon className="w-4 h-4 mr-1.5" />
+                Record
+              </button>
+              <button
+                onClick={() => setIsUploadOpen(true)}
+                className={cn(buttonStyles.base, buttonStyles.primary)}
+              >
+                <PlusIcon className="w-4 h-4 mr-1.5" />
+                Upload
+              </button>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {voices.map((voice) => (
+              <div
+                key={voice.id}
+                className={cn(
+                  "rounded-xl p-4",
+                  "bg-white/50 dark:bg-white/5 backdrop-blur-xl",
+                  "border border-white/50 dark:border-white/10",
+                  "shadow-lg shadow-black/5 dark:shadow-none"
+                )}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1 min-w-0 pr-2">
+                    <h3 className="font-medium text-gray-900 dark:text-white truncate">{voice.name}</h3>
+                    {voice.description && (
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
+                        {voice.description}
+                      </p>
+                    )}
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                      {new Date(voice.created_at).toLocaleDateString()}
                     </p>
-                  )}
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
-                    Created: {new Date(voice.created_at).toLocaleDateString()}
-                  </p>
+                  </div>
+                  <button
+                    onClick={() => setDeleteVoiceId(voice.id)}
+                    className="text-gray-400 hover:text-red-500 p-1 -mt-1 -mr-1 flex-shrink-0"
+                  >
+                    <TrashIcon className="w-5 h-5" />
+                  </button>
                 </div>
-                <button
-                  onClick={() => setDeleteVoiceId(voice.id)}
-                  className="text-gray-400 hover:text-red-500 p-1"
-                >
-                  <TrashIcon className="w-5 h-5" />
-                </button>
-              </div>
-              <div className="mt-3">
                 <AudioPlayer src={getVoiceAudioUrl(voice.id)} />
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </>
       ) : (
-        <div className="text-center py-12">
-          <MicrophoneIcon className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600" />
+        <div className="flex flex-col items-center justify-center h-full min-h-[400px]">
+          <MicrophoneIcon className="w-16 h-16 text-gray-300 dark:text-gray-600" />
           <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">
             No custom voices yet
           </h3>
-          <p className="mt-2 text-gray-500 dark:text-gray-400">
+          <p className="mt-2 text-gray-500 dark:text-gray-400 text-center max-w-sm">
             Upload an audio file or record your voice to create a custom voice for TTS.
           </p>
+          <div className="flex gap-3 mt-6">
+            <button
+              onClick={() => setIsRecordOpen(true)}
+              className={cn(buttonStyles.base, buttonStyles.secondary)}
+            >
+              <MicrophoneIcon className="w-4 h-4 mr-1.5" />
+              Record
+            </button>
+            <button
+              onClick={() => setIsUploadOpen(true)}
+              className={cn(buttonStyles.base, buttonStyles.primary)}
+            >
+              <PlusIcon className="w-4 h-4 mr-1.5" />
+              Upload
+            </button>
+          </div>
         </div>
       )}
 
