@@ -14,9 +14,9 @@ import { cn } from "../../lib/styles";
 import { useAuthStore } from "../../stores/authStore";
 
 const navLinkStyles = {
-  base: "flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors",
+  base: "flex items-center gap-2 px-3 py-2 text-sm rounded-lg",
   active: "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300",
-  inactive: "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5",
+  inactive: "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5 transition-colors",
 };
 
 export function Sidebar() {
