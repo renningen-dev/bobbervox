@@ -75,15 +75,22 @@ class FirebaseAuthMiddleware(BaseHTTPMiddleware):
             request.state.user_email = "test@example.com"
             return await call_next(request)
 
-        # Extract token from Authorization header
+        # Extract token from Authorization header or query parameter
+        # Query parameter is needed for media elements (audio/video) that can't set headers
+        token: Optional[str] = None
+
         auth_header = request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ", 1)[1]
+        else:
+            # Check query parameter (for media files)
+            token = request.query_params.get("token")
+
+        if not token:
             return JSONResponse(
                 status_code=401,
                 content={"detail": "Missing or invalid Authorization header"},
             )
-
-        token = auth_header.split(" ", 1)[1]
         decoded_token = verify_firebase_token(token)
 
         if not decoded_token:
